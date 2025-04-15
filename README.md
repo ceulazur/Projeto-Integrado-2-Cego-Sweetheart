@@ -1,2 +1,2 @@
 # Projeto-Integrado-2-Cego-Sweetheart
-Projeto de desenvolvimento web para a disciplina de projeto integrado 2
+Desenvolvimento web para a disciplina de Projeto Integrado 2
