@@ -1,13 +1,15 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import React from 'react';
+import { Header } from '@/components/layout/Header';
+import { Hero } from '@/components/sections/Hero';
+import { InfoSection } from '@/components/sections/InfoSection';
 
-const Index = () => {
+const Index: React.FC = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto pb-[184px] px-[9px]">
+      <Header />
+      <Hero />
+      <InfoSection />
+    </main>
   );
 };
 

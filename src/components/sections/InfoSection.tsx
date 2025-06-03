@@ -1,0 +1,45 @@
+import React from 'react';
+import { Button } from '@/components/ui/Button';
+
+export const InfoSection: React.FC = () => {
+  return (
+    <section className="flex items-stretch gap-[11px] mt-2.5">
+      <div className="flex flex-col items-stretch flex-1">
+        <div className="z-10 flex min-h-[219px] items-center gap-2.5 overflow-hidden text-[15px] text-[rgba(27,30,132,1)] font-bold">
+          <div className="w-[165px] my-auto">
+            A Cego Sweetheart é uma loja online que abraça artistas e seus
+            produtos únicos no intuito de vender aos nossos clientes estilo,
+            autenticidade e beleza.
+          </div>
+          <div className="self-stretch flex w-12 shrink-0 h-12 my-auto" />
+        </div>
+        <Button variant="primary" className="pl-[33px] pr-8">
+          Comprar agora
+        </Button>
+        <img
+          src="https://cdn.builder.io/api/v1/image/assets/c9e61df7bfe543a0b7e24feda3172117/30381b65f68a5cdf3e4d6e9322c556ef33feb71f?placeholderIfAbsent=true"
+          alt="Featured product"
+          className="aspect-[0.88] object-contain w-[191px] mt-[11px]"
+        />
+      </div>
+      <div className="flex flex-col items-stretch text-[rgba(245,0,0,1)] flex-1">
+        <img
+          src="https://cdn.builder.io/api/v1/image/assets/c9e61df7bfe543a0b7e24feda3172117/d4b5f1a4b33802df94177bff8c0305f781b737ef?placeholderIfAbsent=true"
+          alt="Product showcase"
+          className="aspect-[0.86] object-contain w-[189px]"
+        />
+        <div className="flex h-[180px] items-center gap-2.5 overflow-hidden text-[15px] font-bold w-[180px] mt-[11px]">
+          <div className="w-[165px] my-auto">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+            enim ad minim veniam, quis nostrud exercitation.
+          </div>
+          <div className="self-stretch flex w-12 shrink-0 h-12 my-auto" />
+        </div>
+        <Button variant="outline" className="pl-[17px] pr-4 mt-3">
+          Acompanhar pedido
+        </Button>
+      </div>
+    </section>
+  );
+};
