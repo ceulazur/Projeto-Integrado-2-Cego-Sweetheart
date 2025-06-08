@@ -3,15 +3,15 @@ import React from 'react';
 export const Header: React.FC = () => {
   return (
     <header className="w-full bg-white">
-      <div className="max-w-[850px] mx-auto pl-0 pr-8">
+      <div className="max-w-[1000px] mx-auto pl-0 pr-8">
         {/* Barra superior */}
-        <div className="flex justify-between items-center py-4">
+        <div className="flex justify-between items-center py-2">
           {/* Logo e nome */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1">
             <img
-              src="/logo.png"
+              src="/logo.svg"
               alt="CEGO Logo"
-              className="w-12 h-12"
+              className="w-16 h-16"
             />
             <div className="text-2xl font-bold">
               <span className="text-red-600">CEGO</span>
@@ -38,7 +38,7 @@ export const Header: React.FC = () => {
         <div className="border-b-2 border-black"></div>
 
         {/* Barra de navegação */}
-        <nav className="flex justify-between items-center py-2">
+        <nav className="flex justify-between items-center py-1">
           {/* Botão Minha conta */}
           <button className="text-sm text-blue-900 flex items-center space-x-1">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
