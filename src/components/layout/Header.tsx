@@ -14,8 +14,8 @@ export const Header: React.FC = () => {
               className="w-16 h-16"
             />
             <div className="text-2xl font-bold">
-              <span className="text-red-600">CEGO</span>
-              <span className="text-blue-900">SWEETHEART</span>
+              <span className="text-red-600 font-['MaryKate'] text-[30px] mt-2 inline-block">CEGO</span>{" "}
+              <span className="text-blue-900 font-['MaryKate'] text-[30px] mt-2 inline-block">SWEETHEART</span>
             </div>
           </div>
 
@@ -35,7 +35,7 @@ export const Header: React.FC = () => {
         {/* Barra de navegação */}
         <nav className="flex justify-between items-center py-4">
           {/* Botão Minha conta */}
-          <button className="text-sm text-blue-900 flex items-center space-x-1">
+          <button className="text-sm text-blue-900 flex items-center space-x-1 font-inter font-bold">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
             </svg>
