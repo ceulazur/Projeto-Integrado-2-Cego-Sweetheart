@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@/components/ui/Button';
+import { ActionButton } from '@/components/ui/ActionButton';
 
 export const InfoSection: React.FC = () => {
   return (
@@ -13,9 +13,11 @@ export const InfoSection: React.FC = () => {
           </div>
           <div className="self-stretch flex w-12 shrink-0 h-12 my-auto" />
         </div>
-        <Button variant="primary" className="pl-[33px] pr-8">
-          Comprar agora
-        </Button>
+        <div className="-ml-2">
+          <ActionButton variant="primary" className="w-[180px]">
+            Comprar agora
+          </ActionButton>
+        </div>
         <img
           src="https://cdn.builder.io/api/v1/image/assets/c9e61df7bfe543a0b7e24feda3172117/30381b65f68a5cdf3e4d6e9322c556ef33feb71f?placeholderIfAbsent=true"
           alt="Featured product"
@@ -36,9 +38,11 @@ export const InfoSection: React.FC = () => {
           </div>
           <div className="self-stretch flex w-12 shrink-0 h-12 my-auto" />
         </div>
-        <Button variant="outline" className="pl-[17px] pr-4 mt-3">
-          Acompanhar pedido
-        </Button>
+        <div className="-ml-2">
+          <ActionButton variant="secondary" className="w-[200px]">
+            Acompanhar pedido
+          </ActionButton>
+        </div>
       </div>
     </section>
   );
