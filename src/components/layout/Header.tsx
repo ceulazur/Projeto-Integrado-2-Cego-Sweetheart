@@ -42,8 +42,14 @@ export const Header: React.FC = () => {
             <span>Minha conta</span>
           </button>
 
-          {/* Área de busca (opcional, conforme imagem) */}
-          <div className="flex-1"></div>
+          {/* Ícone de pesquisa */}
+          <button className="text-blue-900">
+            <img
+              src="/search-icon.svg"
+              alt="Pesquisar"
+              className="w-5 h-5"
+            />
+          </button>
         </nav>
       </div>
     </header>
