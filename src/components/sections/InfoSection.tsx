@@ -39,7 +39,7 @@ export const InfoSection: React.FC = () => {
           <div className="self-stretch flex w-12 shrink-0 h-12 my-auto" />
         </div>
         <div className="-ml-2">
-          <ActionButton variant="secondary" className="w-[200px]">
+          <ActionButton variant="secondary" className="w-[200px] mt-9" data-lov-id="src\components\sections\InfoSection.tsx:42:10">
             Acompanhar pedido
           </ActionButton>
         </div>
