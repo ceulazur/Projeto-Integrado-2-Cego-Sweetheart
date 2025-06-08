@@ -3,7 +3,7 @@ import React from 'react';
 export const Header: React.FC = () => {
   return (
     <header className="w-full bg-white">
-      <div className="container mx-auto px-4">
+      <div className="max-w-[850px] mx-auto pl-0 pr-8">
         {/* Barra superior */}
         <div className="flex justify-between items-center py-4">
           {/* Logo e nome */}
