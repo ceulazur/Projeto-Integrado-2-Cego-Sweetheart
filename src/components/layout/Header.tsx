@@ -19,13 +19,12 @@ export const Header: React.FC = () => {
             </div>
           </div>
 
-          {/* Menu mobile e Minha conta */}
+          {/* Menu mobile e Menu */}
           <div className="flex items-center space-x-4">
-            <button className="text-sm text-blue-900 flex items-center space-x-1">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+            <button className="bg-blue-900 p-1 rounded">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
               </svg>
-              <span>Minha conta</span>
             </button>
             <button className="lg:hidden">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -40,11 +39,12 @@ export const Header: React.FC = () => {
 
         {/* Barra de navegação */}
         <nav className="flex justify-between items-center py-2">
-          {/* Botão de menu com ícone */}
-          <button className="bg-blue-900 p-1 rounded">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+          {/* Botão Minha conta */}
+          <button className="text-sm text-blue-900 flex items-center space-x-1">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
             </svg>
+            <span>Minha conta</span>
           </button>
 
           {/* Área de busca (opcional, conforme imagem) */}
