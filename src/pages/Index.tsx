@@ -1,16 +1,15 @@
 import React from 'react';
 import { Header } from '@/components/layout/Header';
-import { Hero } from '@/components/sections/Hero';
 import { InfoSection } from '@/components/sections/InfoSection';
 
-const Index: React.FC = () => {
+export default function Index() {
   return (
-    <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto pb-[184px] px-[9px]">
+    <div className="bg-white flex max-w-[480px] w-full flex-col overflow-hidden items-stretch text-2xl font-normal mx-auto pt-4 pb-[122px]">
       <Header />
-      <Hero />
-      <InfoSection />
-    </main>
+      
+      <div className="z-10 w-full text-black font-medium -mt-2.5 px-[5px]">
+        <InfoSection />
+      </div>
+    </div>
   );
-};
-
-export default Index;
+}

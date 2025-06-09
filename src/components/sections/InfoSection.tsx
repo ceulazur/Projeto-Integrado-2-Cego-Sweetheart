@@ -1,7 +1,10 @@
 import React from 'react';
 import { ActionButton } from '@/components/ui/ActionButton';
+import { useNavigate } from 'react-router-dom';
 
 export const InfoSection: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="flex items-stretch gap-[11px] mt-2.5">
       <div className="flex flex-col items-stretch flex-1">
@@ -14,7 +17,11 @@ export const InfoSection: React.FC = () => {
           <div className="self-stretch flex w-12 shrink-0 h-12 my-auto" />
         </div>
         <div className="-ml-2">
-          <ActionButton variant="primary" className="w-[180px]">
+          <ActionButton 
+            variant="primary" 
+            className="w-[180px]"
+            onClick={() => navigate('/login')}
+          >
             Comprar agora
           </ActionButton>
         </div>
@@ -39,7 +46,11 @@ export const InfoSection: React.FC = () => {
           <div className="self-stretch flex w-12 shrink-0 h-12 my-auto" />
         </div>
         <div className="-ml-2">
-          <ActionButton variant="secondary" className="w-[200px] mt-9" data-lov-id="src\components\sections\InfoSection.tsx:42:10">
+          <ActionButton 
+            variant="secondary" 
+            className="w-[200px] mt-9"
+            onClick={() => navigate('/login')}
+          >
             Acompanhar pedido
           </ActionButton>
         </div>

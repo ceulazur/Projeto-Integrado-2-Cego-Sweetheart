@@ -1,22 +1,58 @@
-import * as React from "react"
+import React, { forwardRef } from 'react';
 
 import { cn } from "@/lib/utils"
 
-const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
-  ({ className, type, ...props }, ref) => {
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  error?: string;
+}
+
+export const Input = forwardRef<HTMLInputElement, InputProps>(
+  ({ error, className = '', ...props }, ref) => {
     return (
+      <div className="w-full">
+        <div className="relative">
       <input
-        type={type}
-        className={cn(
-          "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-          className
-        )}
         ref={ref}
+            className={`
+              bg-[rgba(255,255,255,0.4)] 
+              border 
+              min-h-[82px] 
+              w-full 
+              gap-2.5 
+              px-12 
+              py-[27px] 
+              rounded-[20px] 
+              border-[rgba(96,96,96,1)] 
+              border-solid
+              text-2xl
+              font-normal
+              placeholder:text-black
+              focus:outline-none
+              focus:ring-2
+              focus:ring-[rgba(12,212,32,1)]
+              focus:border-[rgba(12,212,32,1)]
+              ${error ? 'border-red-500' : ''}
+              ${className}
+            `}
+            aria-invalid={error ? 'true' : 'false'}
+            aria-describedby={error ? `${props.id}-error` : undefined}
         {...props}
       />
-    )
+        </div>
+        {error && (
+          <p 
+            id={`${props.id}-error`}
+            className="text-red-500 text-sm mt-2 px-4"
+            role="alert"
+          >
+            {error}
+          </p>
+        )}
+      </div>
+    );
   }
-)
-Input.displayName = "Input"
+);
 
-export { Input }
+Input.displayName = 'Input';
+
+export const FormInput = Input;
