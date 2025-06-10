@@ -3,10 +3,13 @@ import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
 import { useScrollTop } from '../../hooks/useScrollTop';
+import { toast } from 'sonner';
+import { useAuth } from '../../contexts/AuthContext';
 
 export const LoginForm: React.FC = () => {
   const navigateAndScroll = useScrollTop();
-  const [username, setUsername] = useState('');
+  const { setUser } = useAuth();
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberPassword, setRememberPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -16,28 +19,31 @@ export const LoginForm: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('http://localhost:3001/api/login', {
+      const response = await fetch('http://localhost:3000/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username,
+          email,
           password,
         }),
       });
 
       const data = await response.json();
       
-      if (data.success) {
-        alert('Login realizado com sucesso!');
+      if (response.ok) {
+        // Salvar dados do usuário no localStorage e no contexto
+        localStorage.setItem('user', JSON.stringify(data.user));
+        setUser(data.user);
+        toast.success('Login realizado com sucesso!');
         navigateAndScroll('/');
       } else {
-        alert(data.error || 'Usuário ou senha incorretos.');
+        toast.error(data.error || 'Erro ao fazer login');
       }
     } catch (error) {
       console.error('Login failed:', error);
-      alert('Erro ao fazer login. Tente novamente.');
+      toast.error('Erro ao fazer login. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -79,13 +85,13 @@ export const LoginForm: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-[38px]">
           <Input
-            type="text"
+            type="email"
             placeholder="Email"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
-            id="username"
-            name="username"
+            id="email"
+            name="email"
             theme="blue"
             className="bg-[rgba(255,255,255,0.40)] min-h-[79px] px-12 py-[27px] text-2xl placeholder:text-black placeholder:opacity-70"
           />

@@ -1,8 +1,19 @@
 import React from 'react';
 import { useScrollTop } from '../../hooks/useScrollTop';
+import { useAuth } from '../../contexts/AuthContext';
 
 export const Header: React.FC = () => {
   const navigateAndScroll = useScrollTop();
+  const { user, isAuthenticated } = useAuth();
+
+  const handleAccountClick = () => {
+    if (isAuthenticated) {
+      // TODO: Implementar menu de usuário
+      console.log('Abrir menu de usuário');
+    } else {
+      navigateAndScroll('/login');
+    }
+  };
 
   return (
     <header className="w-full bg-white">
@@ -40,15 +51,26 @@ export const Header: React.FC = () => {
 
         {/* Barra de navegação */}
         <nav className="flex justify-between items-center py-4">
+          {/* Ícone do carrinho */}
+          <button className="text-blue-900 -mt-0.5">
+            <img
+              src="/cart-icon.svg"
+              alt="Carrinho"
+              className="w-5 h-5"
+            />
+          </button>
+
           {/* Botão Minha conta */}
           <button 
             className="text-sm text-blue-900 flex items-center space-x-1 font-inter font-bold"
-            onClick={() => navigateAndScroll('/login')}
+            onClick={handleAccountClick}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-            </svg>
-            <span>Minha conta</span>
+            <img
+              src="/chevron-down-icon.svg"
+              alt="Expandir menu"
+              className="w-4 h-4"
+            />
+            <span>{isAuthenticated ? `Olá, ${user?.firstName}` : 'Minha conta'}</span>
           </button>
 
           {/* Ícone de pesquisa */}

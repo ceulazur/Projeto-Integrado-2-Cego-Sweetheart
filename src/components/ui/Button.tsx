@@ -1,25 +1,75 @@
 import React from 'react';
-import { cn } from '@/lib/utils';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'outline';
+  variant?: 'primary' | 'secondary';
+  theme?: 'green' | 'blue';
+  children: React.ReactNode;
 }
 
-export const Button: React.FC<ButtonProps> = ({ 
-  children, 
-  variant = 'primary', 
-  className,
-  ...props 
+export const Button: React.FC<ButtonProps> = ({
+  variant = 'primary',
+  theme = 'green',
+  children,
+  className = '',
+  ...props
 }) => {
+  const baseClasses = `
+    border 
+    min-h-[81px] 
+    w-full 
+    gap-2.5 
+    px-12 
+    py-[26px] 
+    rounded-[20px] 
+    border-[rgba(96,96,96,1)] 
+    border-solid
+    text-2xl
+    font-normal
+    transition-all
+    duration-200
+    focus:outline-none
+    focus:ring-2
+    focus:ring-offset-2
+    disabled:opacity-50
+    disabled:cursor-not-allowed
+  `;
+  
+  const themeColors = {
+    green: {
+      primary: `
+        bg-[rgba(12,212,32,1)] 
+        text-white 
+        hover:bg-[rgba(10,190,28,1)]
+        focus:ring-[rgba(12,212,32,1)]
+        active:bg-[rgba(8,170,25,1)]
+      `,
+      secondary: `
+        bg-white 
+        text-black 
+        hover:bg-gray-50
+        focus:ring-gray-300
+      `
+    },
+    blue: {
+      primary: `
+        bg-[rgba(12,135,212,1)] 
+        text-white 
+        hover:bg-[rgba(10,121,190,1)]
+        focus:ring-[rgba(12,135,212,1)]
+        active:bg-[rgba(8,108,170,1)]
+      `,
+      secondary: `
+        bg-white 
+        text-black 
+        hover:bg-gray-50
+        focus:ring-gray-300
+      `
+    }
+  };
+
   return (
     <button
-      className={cn(
-        'min-h-7 gap-2.5 text-[13px] font-medium rounded-[20px] px-8 py-1.5',
-        variant === 'primary' && 'bg-[rgba(27,30,132,1)] text-white border-[rgba(96,96,96,1)]',
-        variant === 'outline' && 'bg-[rgba(245,0,0,0)] text-[rgba(245,0,0,1)] border-[rgba(245,0,0,1)]',
-        'border border-solid',
-        className
-      )}
+      className={`${baseClasses} ${themeColors[theme][variant]} ${className}`}
       {...props}
     >
       {children}

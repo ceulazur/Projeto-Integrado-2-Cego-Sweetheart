@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { useScrollTop } from '../../hooks/useScrollTop';
+import { toast } from 'sonner';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface FormData {
   firstName: string;
@@ -21,6 +23,7 @@ interface FormErrors {
 
 export const RegistrationForm: React.FC = () => {
   const navigateAndScroll = useScrollTop();
+  const { setUser } = useAuth();
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -86,30 +89,48 @@ export const RegistrationForm: React.FC = () => {
     e.preventDefault();
     
     if (!validateForm()) {
+      toast.error('Por favor, corrija os erros no formulário');
       return;
     }
 
     setIsSubmitting(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Handle successful registration
-      console.log('Registration successful:', formData);
-      alert('Conta criada com sucesso!');
-      
-      // Reset form
-      setFormData({
-        firstName: '',
-        lastName: '',
-        email: '',
-        password: '',
-        confirmPassword: ''
+      const response = await fetch('http://localhost:3000/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          firstName: formData.firstName,
+          lastName: formData.lastName
+        }),
       });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const userData = {
+          email: formData.email,
+          firstName: formData.firstName,
+          lastName: formData.lastName
+        };
+        
+        // Salvar dados do usuário no localStorage e no contexto
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+        
+        toast.success('Conta criada com sucesso!');
+        // Redirecionar para a página inicial
+        navigateAndScroll('/');
+      } else {
+        toast.error(data.error || 'Erro ao criar conta');
+      }
     } catch (error) {
       console.error('Registration failed:', error);
-      alert('Erro ao criar conta. Tente novamente.');
+      toast.error('Erro ao criar conta. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -181,7 +202,7 @@ export const RegistrationForm: React.FC = () => {
 
           <Input
             id="confirmPassword"
-            placeholder="Confirme sua a senha"
+            placeholder="Confirme sua senha"
             type="password"
             value={formData.confirmPassword}
             onChange={handleInputChange('confirmPassword')}
@@ -205,12 +226,12 @@ export const RegistrationForm: React.FC = () => {
 
       <div className="text-xl mt-[38px]">
         <span className="font-normal text-xl text-black max-sm:text-base">
-          Já tem uma conta ?{' '}
+          Já tem uma conta?{' '}
         </span>
         <button
-          onClick={() => navigateAndScroll('/login')}
-          className="font-bold text-xl text-black max-sm:text-base hover:text-[#0C87D4] transition-colors underline"
           type="button"
+          className="font-bold text-xl text-black max-sm:text-base hover:text-[rgba(12,212,32,1)] transition-colors underline"
+          onClick={() => navigateAndScroll('/login')}
         >
           Logue-se
         </button>
