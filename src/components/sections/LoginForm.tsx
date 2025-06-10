@@ -33,8 +33,6 @@ export const LoginForm: React.FC = () => {
       const data = await response.json();
       
       if (response.ok) {
-        // Salvar dados do usuário no localStorage e no contexto
-        localStorage.setItem('user', JSON.stringify(data.user));
         setUser(data.user);
         toast.success('Login realizado com sucesso!');
         navigateAndScroll('/');

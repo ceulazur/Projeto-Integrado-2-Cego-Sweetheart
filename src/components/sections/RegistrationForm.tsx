@@ -3,7 +3,6 @@ import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { useScrollTop } from '../../hooks/useScrollTop';
 import { toast } from 'sonner';
-import { useAuth } from '../../contexts/AuthContext';
 
 interface FormData {
   firstName: string;
@@ -23,7 +22,6 @@ interface FormErrors {
 
 export const RegistrationForm: React.FC = () => {
   const navigateAndScroll = useScrollTop();
-  const { setUser } = useAuth();
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -112,19 +110,8 @@ export const RegistrationForm: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
-        const userData = {
-          email: formData.email,
-          firstName: formData.firstName,
-          lastName: formData.lastName
-        };
-        
-        // Salvar dados do usuário no localStorage e no contexto
-        localStorage.setItem('user', JSON.stringify(userData));
-        setUser(userData);
-        
-        toast.success('Conta criada com sucesso!');
-        // Redirecionar para a página inicial
-        navigateAndScroll('/');
+        toast.success('Conta criada com sucesso! Por favor, faça login.');
+        navigateAndScroll('/login');
       } else {
         toast.error(data.error || 'Erro ao criar conta');
       }
