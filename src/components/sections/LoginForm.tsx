@@ -2,18 +2,45 @@ import React, { useState } from 'react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
-import { useNavigate } from 'react-router-dom';
+import { useScrollTop } from '../../hooks/useScrollTop';
 
 export const LoginForm: React.FC = () => {
-  const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const navigateAndScroll = useScrollTop();
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [rememberPassword, setRememberPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('Login attempt:', { email, password, rememberPassword });
-    // Add actual login logic here
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('http://localhost:3001/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        alert('Login realizado com sucesso!');
+        navigateAndScroll('/');
+      } else {
+        alert(data.error || 'Usuário ou senha incorretos.');
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+      alert('Erro ao fazer login. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleGoogleLogin = () => {
@@ -22,94 +49,96 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-    <div className="flex w-[390px] flex-col items-start gap-[43px] h-[785px] box-border px-[5px] py-0 max-md:w-full max-md:p-0">
-      <section>
-        <h1 className="w-[306px] h-[41px] relative max-sm:w-full">
-          <span className="font-bold text-4xl text-black max-sm:text-[28px]">
-            Bem-vindo de
-          </span>
-          <span className="font-bold text-4xl text-[rgba(12,135,212,1)] max-sm:text-[28px]">
-            {' '}volta!
-          </span>
-        </h1>
-        <p className="font-normal text-2xl text-black w-[379px] h-7 relative max-sm:text-xl max-sm:w-full mt-4">
-          Preencha suas informações, por favor.
-        </p>
-      </section>
-
-      <Button
-        variant="secondary"
-        onClick={handleGoogleLogin}
-        className="flex w-[381px] h-[79px] justify-center items-center gap-2.5 bg-[rgba(255,255,255,0.40)] hover:bg-[rgba(255,255,255,0.60)]"
-      >
-        Logar-se com a Conta Google
-      </Button>
-
-      <div className="flex h-4 items-center gap-2 w-full">
-        <div className="w-[169px] h-px bg-[rgba(0,0,0,0.64)]" />
-        <span className="font-normal text-sm text-black">
-          Ou
-        </span>
-        <div className="w-[186px] h-px bg-[rgba(0,0,0,0.64)]" />
+    <main className="w-full mt-2 px-[5px]">
+      <div className="text-4xl font-bold mb-[38px]">
+        <span className="text-black">Bem-vindo de</span>
+        <span className="text-[rgba(12,135,212,1)]"> volta!</span>
       </div>
+      
+      <p className="text-2xl font-medium mb-[38px]">
+        Preencha suas informações, por favor.
+      </p>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-[43px] w-full">
-        <Input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          id="email"
-          name="email"
-          className="bg-[rgba(255,255,255,0.40)] min-h-[79px] px-12 py-[27px] text-2xl placeholder:text-black placeholder:opacity-70"
-        />
-
-        <Input
-          type="password"
-          placeholder="Senha"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          id="password"
-          name="password"
-          className="bg-[rgba(255,255,255,0.40)] min-h-[79px] px-12 py-[27px] text-2xl placeholder:text-black placeholder:opacity-70"
-        />
-
-        <div className="flex w-[166px] h-[17px] items-center gap-2.5">
-          <label htmlFor="remember-password" className="flex items-center gap-2.5 cursor-pointer">
-            <Checkbox
-              id="remember-password"
-              checked={rememberPassword}
-              onCheckedChange={(checked) => setRememberPassword(checked === true)}
-              className="w-5 h-[17px] border-black accent-[#0C87D4]"
-            />
-            <span className="font-normal text-[15px] text-black w-[175px] shrink-0 max-sm:text-sm">
-              Lembrar-se da senha ?
-            </span>
-          </label>
-        </div>
-
+      <div className="space-y-[38px]">
         <Button
-          type="submit"
-          className="flex w-[381px] h-[79px] justify-center items-center gap-2.5 bg-[#1B1E84] hover:bg-[#151660] text-white"
+          variant="secondary"
+          theme="blue"
+          onClick={handleGoogleLogin}
+          className="flex w-[381px] h-[79px] justify-center items-center gap-2.5 bg-[rgba(255,255,255,0.40)] hover:bg-[rgba(255,255,255,0.60)]"
         >
-          Logar-se
+          Logar-se com a Conta Google
         </Button>
 
-        <p className="w-[280px] h-[23px] max-sm:w-full">
+        <div className="flex h-4 items-center gap-2 w-full">
+          <div className="w-[169px] h-px bg-[rgba(0,0,0,0.64)]" />
+          <span className="font-normal text-sm text-black">
+            Ou
+          </span>
+          <div className="w-[186px] h-px bg-[rgba(0,0,0,0.64)]" />
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-[38px]">
+          <Input
+            type="text"
+            placeholder="Email"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            id="username"
+            name="username"
+            theme="blue"
+            className="bg-[rgba(255,255,255,0.40)] min-h-[79px] px-12 py-[27px] text-2xl placeholder:text-black placeholder:opacity-70"
+          />
+
+          <Input
+            type="password"
+            placeholder="Senha"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            id="password"
+            name="password"
+            theme="blue"
+            className="bg-[rgba(255,255,255,0.40)] min-h-[79px] px-12 py-[27px] text-2xl placeholder:text-black placeholder:opacity-70"
+          />
+
+          <div className="flex w-[166px] h-[17px] items-center gap-2.5">
+            <label htmlFor="remember-password" className="flex items-center gap-2.5 cursor-pointer">
+              <Checkbox
+                id="remember-password"
+                checked={rememberPassword}
+                onCheckedChange={(checked) => setRememberPassword(checked === true)}
+                className="w-5 h-[17px] border-black accent-[#0C87D4]"
+              />
+              <span className="font-normal text-[15px] text-black w-[175px] shrink-0 max-sm:text-sm">
+                Lembrar-se da senha ?
+              </span>
+            </label>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            theme="blue"
+            className="flex w-[381px] h-[79px] justify-center items-center gap-2.5"
+          >
+            {isSubmitting ? 'Entrando...' : 'Entrar'}
+          </Button>
+        </form>
+
+        <div className="text-xl mt-[38px]">
           <span className="font-normal text-xl text-black max-sm:text-base">
-            Não tem uma conta ?{' '}
+            Não tem uma conta?{' '}
           </span>
           <button
             type="button"
             className="font-bold text-xl text-black max-sm:text-base hover:text-[#0C87D4] transition-colors underline"
-            onClick={() => navigate('/register')}
+            onClick={() => navigateAndScroll('/register')}
           >
             Registre-se
           </button>
-        </p>
-      </form>
-    </div>
+        </div>
+      </div>
+    </main>
   );
 }; 

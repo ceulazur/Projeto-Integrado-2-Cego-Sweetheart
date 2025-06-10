@@ -2,11 +2,13 @@ import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary';
+  theme?: 'green' | 'blue';
   children: React.ReactNode;
 }
 
 export const Button: React.FC<ButtonProps> = ({
-  variant = 'primary', 
+  variant = 'primary',
+  theme = 'green',
   children,
   className = '',
   ...props
@@ -32,25 +34,42 @@ export const Button: React.FC<ButtonProps> = ({
     disabled:cursor-not-allowed
   `;
   
-  const variantClasses = {
-    primary: `
-      bg-[rgba(12,212,32,1)] 
-      text-white 
-      hover:bg-[rgba(10,190,28,1)]
-      focus:ring-[rgba(12,212,32,1)]
-      active:bg-[rgba(8,170,25,1)]
-    `,
-    secondary: `
-      bg-white 
-      text-black 
-      hover:bg-gray-50
-      focus:ring-gray-300
-    `
+  const themeColors = {
+    green: {
+      primary: `
+        bg-[rgba(12,212,32,1)] 
+        text-white 
+        hover:bg-[rgba(10,190,28,1)]
+        focus:ring-[rgba(12,212,32,1)]
+        active:bg-[rgba(8,170,25,1)]
+      `,
+      secondary: `
+        bg-white 
+        text-black 
+        hover:bg-gray-50
+        focus:ring-gray-300
+      `
+    },
+    blue: {
+      primary: `
+        bg-[rgba(12,135,212,1)] 
+        text-white 
+        hover:bg-[rgba(10,121,190,1)]
+        focus:ring-[rgba(12,135,212,1)]
+        active:bg-[rgba(8,108,170,1)]
+      `,
+      secondary: `
+        bg-white 
+        text-black 
+        hover:bg-gray-50
+        focus:ring-gray-300
+      `
+    }
   };
 
   return (
     <button
-      className={`${baseClasses} ${variantClasses[variant]} ${className}`}
+      className={`${baseClasses} ${themeColors[theme][variant]} ${className}`}
       {...props}
     >
       {children}

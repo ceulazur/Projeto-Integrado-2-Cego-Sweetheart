@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { useNavigate } from 'react-router-dom';
+import { useScrollTop } from '../../hooks/useScrollTop';
 
 interface FormData {
   firstName: string;
@@ -20,7 +20,7 @@ interface FormErrors {
 }
 
 export const RegistrationForm: React.FC = () => {
-  const navigate = useNavigate();
+  const navigateAndScroll = useScrollTop();
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -136,6 +136,7 @@ export const RegistrationForm: React.FC = () => {
             error={errors.firstName}
             required
             autoComplete="given-name"
+            theme="green"
             className="bg-[rgba(255,255,255,0.40)] min-h-[79px] px-12 py-[27px] text-2xl placeholder:text-black placeholder:opacity-70"
           />
 
@@ -148,6 +149,7 @@ export const RegistrationForm: React.FC = () => {
             error={errors.lastName}
             required
             autoComplete="family-name"
+            theme="green"
             className="bg-[rgba(255,255,255,0.40)] min-h-[79px] px-12 py-[27px] text-2xl placeholder:text-black placeholder:opacity-70"
           />
 
@@ -160,6 +162,7 @@ export const RegistrationForm: React.FC = () => {
             error={errors.email}
             required
             autoComplete="email"
+            theme="green"
             className="bg-[rgba(255,255,255,0.40)] min-h-[79px] px-12 py-[27px] text-2xl placeholder:text-black placeholder:opacity-70"
           />
 
@@ -172,6 +175,7 @@ export const RegistrationForm: React.FC = () => {
             error={errors.password}
             required
             autoComplete="new-password"
+            theme="green"
             className="bg-[rgba(255,255,255,0.40)] min-h-[79px] px-12 py-[27px] text-2xl placeholder:text-black placeholder:opacity-70"
           />
 
@@ -184,13 +188,15 @@ export const RegistrationForm: React.FC = () => {
             error={errors.confirmPassword}
             required
             autoComplete="new-password"
+            theme="green"
             className="bg-[rgba(255,255,255,0.40)] min-h-[79px] px-12 py-[27px] text-2xl placeholder:text-black placeholder:opacity-70"
           />
 
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="flex w-[381px] h-[79px] justify-center items-center gap-2.5 bg-[#1B1E84] hover:bg-[#151660] text-white"
+            theme="green"
+            className="flex w-[381px] h-[79px] justify-center items-center gap-2.5"
           >
             {isSubmitting ? 'Registrando...' : 'Registre-se'}
           </Button>
@@ -202,7 +208,7 @@ export const RegistrationForm: React.FC = () => {
           Já tem uma conta ?{' '}
         </span>
         <button
-          onClick={() => navigate('/login')}
+          onClick={() => navigateAndScroll('/login')}
           className="font-bold text-xl text-black max-sm:text-base hover:text-[#0C87D4] transition-colors underline"
           type="button"
         >

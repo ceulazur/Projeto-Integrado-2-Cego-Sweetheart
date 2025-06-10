@@ -8,7 +8,7 @@ export default function Index() {
       <Header />
       
       <div className="z-10 w-full text-black font-medium -mt-2.5 px-[5px]">
-        <InfoSection />
+      <InfoSection />
       </div>
     </div>
   );

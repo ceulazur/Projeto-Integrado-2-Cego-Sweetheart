@@ -1,13 +1,19 @@
 import React from 'react';
+import { useScrollTop } from '../../hooks/useScrollTop';
 
 export const Header: React.FC = () => {
+  const navigateAndScroll = useScrollTop();
+
   return (
     <header className="w-full bg-white">
       <div className="max-w-[1000px] mx-auto pl-0 pr-8">
         {/* Barra superior */}
         <div className="flex justify-between items-center py-0.25">
           {/* Logo e nome */}
-          <div className="flex items-center space-x-1">
+          <div 
+            className="flex items-center space-x-1 cursor-pointer" 
+            onClick={() => navigateAndScroll('/')}
+          >
             <img
               src="/logo.svg"
               alt="CEGO Logo"
@@ -35,7 +41,10 @@ export const Header: React.FC = () => {
         {/* Barra de navegação */}
         <nav className="flex justify-between items-center py-4">
           {/* Botão Minha conta */}
-          <button className="text-sm text-blue-900 flex items-center space-x-1 font-inter font-bold">
+          <button 
+            className="text-sm text-blue-900 flex items-center space-x-1 font-inter font-bold"
+            onClick={() => navigateAndScroll('/login')}
+          >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
             </svg>

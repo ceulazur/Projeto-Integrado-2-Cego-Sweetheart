@@ -1,9 +1,9 @@
 import React from 'react';
-import { ActionButton } from '@/components/ui/ActionButton';
-import { useNavigate } from 'react-router-dom';
+import { ActionButton } from '../ui/ActionButton';
+import { useScrollTop } from '../../hooks/useScrollTop';
 
 export const InfoSection: React.FC = () => {
-  const navigate = useNavigate();
+  const navigateAndScroll = useScrollTop();
 
   return (
     <section className="flex items-stretch gap-[11px] mt-2.5">
@@ -20,7 +20,7 @@ export const InfoSection: React.FC = () => {
           <ActionButton 
             variant="primary" 
             className="w-[180px]"
-            onClick={() => navigate('/login')}
+            onClick={() => navigateAndScroll('/login')}
           >
             Comprar agora
           </ActionButton>
@@ -49,7 +49,7 @@ export const InfoSection: React.FC = () => {
           <ActionButton 
             variant="secondary" 
             className="w-[200px] mt-9"
-            onClick={() => navigate('/login')}
+            onClick={() => navigateAndScroll('/login')}
           >
             Acompanhar pedido
           </ActionButton>
