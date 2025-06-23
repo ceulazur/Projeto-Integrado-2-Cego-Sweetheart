@@ -544,6 +544,19 @@ app.post('/api/upload/product-image', productImageUpload.single('file'), (req: R
   res.json({ url: relativePath });
 });
 
+// Rota para listar todos os artistas únicos
+app.get('/api/artists', (_req: Request, res: Response) => {
+  try {
+    const artists = db.prepare(
+      'SELECT DISTINCT artistHandle, artistUsername, artistProfileImage FROM products'
+    ).all();
+    res.json(artists);
+  } catch (error) {
+    console.error('Erro ao buscar artistas:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
 // Start server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
