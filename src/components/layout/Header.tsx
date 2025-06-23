@@ -1,18 +1,25 @@
 import React from 'react';
 import { useScrollTop } from '../../hooks/useScrollTop';
 import { useAuth } from '../../contexts/AuthContext';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator
+} from '../ui/dropdown-menu';
 
 export const Header: React.FC = () => {
   const navigateAndScroll = useScrollTop();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
 
-  const handleAccountClick = () => {
-    if (isAuthenticated) {
-      // TODO: Implementar menu de usuário
-      console.log('Abrir menu de usuário');
-    } else {
-      navigateAndScroll('/login');
-    }
+  const handlePedidos = () => {
+    navigateAndScroll('/pedidos');
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigateAndScroll('/');
   };
 
   const handleAdminClick = () => {
@@ -64,26 +71,42 @@ export const Header: React.FC = () => {
             />
           </button>
 
-          {/* Botão Minha conta */}
-          <button 
-            className="text-sm text-blue-900 flex items-center space-x-1 font-inter font-bold"
-            onClick={handleAccountClick}
-          >
-            <img
-              src="/chevron-down-icon.svg"
-              alt="Expandir menu"
-              className="w-4 h-4"
-            />
-            <span>{isAuthenticated ? `Olá, ${user?.firstName}` : 'Minha conta'}</span>
-          </button>
-
-          {/* Link para Admin */}
-          {isAuthenticated && (
-            <button 
-              className="text-sm text-purple-600 font-inter font-bold hover:text-purple-800 transition-colors"
-              onClick={handleAdminClick}
+          {/* Botão Minha conta com Dropdown */}
+          {isAuthenticated ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="text-sm text-blue-900 flex items-center space-x-1 font-inter font-bold focus:outline-none"
+                >
+                  <img
+                    src="/chevron-down-icon.svg"
+                    alt="Expandir menu"
+                    className="w-4 h-4"
+                  />
+                  <span>{`Olá, ${user?.firstName}`}</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-[160px]">
+                <DropdownMenuItem onClick={handlePedidos}>
+                  Meus pedidos
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-700">
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <button
+              className="text-sm text-blue-900 flex items-center space-x-1 font-inter font-bold"
+              onClick={() => navigateAndScroll('/login')}
             >
-              Admin
+              <img
+                src="/chevron-down-icon.svg"
+                alt="Expandir menu"
+                className="w-4 h-4"
+              />
+              <span>Minha conta</span>
             </button>
           )}
 
