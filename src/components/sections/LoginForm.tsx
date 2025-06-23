@@ -13,10 +13,19 @@ export const LoginForm: React.FC = () => {
   const [password, setPassword] = useState('');
   const [rememberPassword, setRememberPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
+
+    // Validação manual de email
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      setError('Digite um email válido.');
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const response = await fetch('http://localhost:3000/api/login', {
@@ -35,14 +44,13 @@ export const LoginForm: React.FC = () => {
       if (response.ok) {
         setUser(data.user);
         localStorage.setItem('admin-user', JSON.stringify(data.user));
-        toast.success('Login realizado com sucesso!');
         navigateAndScroll('/');
       } else {
-        toast.error(data.error || 'Erro ao fazer login');
+        setError(data.error || 'Erro ao fazer login.');
       }
     } catch (error) {
       console.error('Login failed:', error);
-      toast.error('Erro ao fazer login. Tente novamente.');
+      setError('Erro ao fazer login. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -60,6 +68,8 @@ export const LoginForm: React.FC = () => {
         <span className="text-[rgba(12,135,212,1)]"> volta!</span>
       </div>
       
+      {error && <div className="text-red-600 text-center font-semibold mb-2">{error}</div>}
+
       <p className="text-2xl font-medium mb-[38px]">
         Preencha suas informações, por favor.
       </p>
@@ -84,15 +94,16 @@ export const LoginForm: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-[38px]">
           <Input
-            type="email"
+            type="text"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
             id="email"
             name="email"
             theme="blue"
             className="bg-[rgba(255,255,255,0.40)] min-h-[79px] px-12 py-[27px] text-2xl placeholder:text-black placeholder:opacity-70"
+            error={error ? error : undefined}
+            autoComplete="username"
           />
 
           <Input
@@ -100,7 +111,6 @@ export const LoginForm: React.FC = () => {
             placeholder="Senha"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
             id="password"
             name="password"
             theme="blue"

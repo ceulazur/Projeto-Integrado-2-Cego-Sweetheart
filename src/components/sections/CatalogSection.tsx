@@ -29,7 +29,7 @@ export const CatalogSection: React.FC = () => {
         <p className="mt-2.5 text-base">
           Aqui ficam os produtos dos seus artistas preferidos
         </p>
-        <div className="self-stretch mt-2.5 w-full border border-black border-solid min-h-px" />
+        <div className="self-stretch mt-2.5 w-full max-w-[449px] mr-auto border border-black border-solid min-h-px" />
       </div>
 
       {isLoading && <CatalogSkeleton />}

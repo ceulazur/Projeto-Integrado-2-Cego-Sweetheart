@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { useScrollTop } from '../../hooks/useScrollTop';
-import { toast } from 'sonner';
 
 interface FormData {
   firstName: string;
@@ -32,38 +31,33 @@ export const RegistrationForm: React.FC = () => {
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const validateForm = (): boolean => {
+  const validateForm = (): FormErrors => {
     const newErrors: FormErrors = {};
-
     if (!formData.firstName.trim()) {
       newErrors.firstName = 'Primeiro nome é obrigatório';
     }
-
     if (!formData.lastName.trim()) {
       newErrors.lastName = 'Último nome é obrigatório';
     }
-
     if (!formData.email.trim()) {
       newErrors.email = 'Email é obrigatório';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email inválido';
     }
-
     if (!formData.password) {
       newErrors.password = 'Senha é obrigatória';
     } else if (formData.password.length < 6) {
       newErrors.password = 'Senha deve ter pelo menos 6 caracteres';
     }
-
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Confirmação de senha é obrigatória';
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Senhas não coincidem';
     }
-
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleInputChange = (field: keyof FormData) => (
@@ -85,9 +79,23 @@ export const RegistrationForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      toast.error('Por favor, corrija os erros no formulário');
+    setError(null);
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      if (validationErrors.email) {
+        setError(validationErrors.email);
+      } else if (validationErrors.firstName) {
+        setError(validationErrors.firstName);
+      } else if (validationErrors.lastName) {
+        setError(validationErrors.lastName);
+      } else if (validationErrors.password) {
+        setError(validationErrors.password);
+      } else if (validationErrors.confirmPassword) {
+        setError(validationErrors.confirmPassword);
+      } else {
+        setError('Preencha todos os campos corretamente.');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -110,14 +118,13 @@ export const RegistrationForm: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success('Conta criada com sucesso! Por favor, faça login.');
         navigateAndScroll('/login');
       } else {
-        toast.error(data.error || 'Erro ao criar conta');
+        setError(data.error || 'Erro ao registrar.');
       }
     } catch (error) {
       console.error('Registration failed:', error);
-      toast.error('Erro ao criar conta. Tente novamente.');
+      setError('Erro ao criar conta. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -129,6 +136,8 @@ export const RegistrationForm: React.FC = () => {
         <span className="text-[rgba(12,212,32,1)]">Crie</span> sua conta!
       </div>
       
+      {error && <div className="text-red-600 text-center font-semibold mb-2">{error}</div>}
+
       <p className="text-2xl font-medium mb-[38px]">
         Preencha suas informações, por favor.
       </p>
@@ -164,11 +173,10 @@ export const RegistrationForm: React.FC = () => {
           <Input
             id="email"
             placeholder="Email"
-            type="email"
+            type="text"
             value={formData.email}
             onChange={handleInputChange('email')}
             error={errors.email}
-            required
             autoComplete="email"
             theme="green"
             className="bg-[rgba(255,255,255,0.40)] min-h-[79px] px-12 py-[27px] text-2xl placeholder:text-black placeholder:opacity-70"

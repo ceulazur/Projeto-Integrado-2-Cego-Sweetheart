@@ -8,7 +8,7 @@ interface CatalogoProps {
 
 const Catalogo: React.FC<CatalogoProps> = ({ className = "" }) => {
   return (
-    <main className={`flex overflow-hidden flex-col pt-4 pr-1.5 pb-7 mx-auto w-full bg-white max-w-[480px] ${className}`}>
+    <main className={`flex overflow-hidden flex-col pt-4 pb-7 mx-auto w-full bg-white max-w-[480px] ${className}`}>
       <Header />
       <CatalogSection />
     </main>
