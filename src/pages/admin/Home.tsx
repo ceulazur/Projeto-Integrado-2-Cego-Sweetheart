@@ -1,12 +1,28 @@
 import { Link } from "react-router-dom";
+import { useProducts } from "../../hooks/useProducts";
 
 const Home = () => {
-  // Dados simulados para mostrar no dashboard - adicionar lógica de estado ou API conforme necessário
-  // Esses dados podem ser substituídos por estados ou props conforme a necessidade
-  const totalProdutos = 20;
+  const { data: produtos, isLoading } = useProducts();
+
+  // Calcular estatísticas baseadas nos dados reais
+  const totalProdutos = produtos?.length || 0;
+  const produtosComEstoque = produtos?.filter(p => p.quantity > 0).length || 0;
+  const produtosSemEstoque = produtos?.filter(p => p.quantity === 0).length || 0;
+  
+  // Dados simulados para pedidos (pode ser integrado com API de pedidos no futuro)
   const pedidosEmAberto = 5;
   const pedidosEnviados = 12;
   const pedidosCancelados = 3;
+
+  if (isLoading) {
+    return (
+      <div className="p-8 pt-24 max-w-6xl mx-auto">
+        <div className="text-center">
+          <p>Carregando estatísticas...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 pt-24 max-w-6xl mx-auto">
@@ -22,19 +38,31 @@ const Home = () => {
       {/* Estatísticas rápidas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-10">
         <div className="bg-purple-600 text-white p-6 rounded shadow text-center">
-          <h2 className="text-lg font-semibold">Produtos</h2>
+          <h2 className="text-lg font-semibold">Total de Produtos</h2>
           <p className="text-3xl font-bold">{totalProdutos}</p>
+        </div>
+        <div className="bg-green-600 text-white p-6 rounded shadow text-center">
+          <h2 className="text-lg font-semibold">Com Estoque</h2>
+          <p className="text-3xl font-bold">{produtosComEstoque}</p>
         </div>
         <div className="bg-yellow-500 text-white p-6 rounded shadow text-center">
           <h2 className="text-lg font-semibold">Pedidos em aberto</h2>
           <p className="text-3xl font-bold">{pedidosEmAberto}</p>
         </div>
-        <div className="bg-green-600 text-white p-6 rounded shadow text-center">
-          <h2 className="text-lg font-semibold">Pedidos enviados</h2>
+        <div className="bg-red-600 text-white p-6 rounded shadow text-center">
+          <h2 className="text-lg font-semibold">Sem Estoque</h2>
+          <p className="text-3xl font-bold">{produtosSemEstoque}</p>
+        </div>
+      </div>
+
+      {/* Estatísticas de pedidos */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
+        <div className="bg-blue-600 text-white p-6 rounded shadow text-center">
+          <h2 className="text-lg font-semibold">Pedidos Enviados</h2>
           <p className="text-3xl font-bold">{pedidosEnviados}</p>
         </div>
-        <div className="bg-red-600 text-white p-6 rounded shadow text-center">
-          <h2 className="text-lg font-semibold">Pedidos cancelados</h2>
+        <div className="bg-orange-600 text-white p-6 rounded shadow text-center">
+          <h2 className="text-lg font-semibold">Pedidos Cancelados</h2>
           <p className="text-3xl font-bold">{pedidosCancelados}</p>
         </div>
       </div>
@@ -60,6 +88,28 @@ const Home = () => {
           Meu Perfil
         </Link>
       </div>
+
+      {/* Lista dos produtos mais recentes */}
+      {produtos && produtos.length > 0 && (
+        <div className="mt-10">
+          <h2 className="text-2xl font-bold mb-6">Produtos Mais Recentes</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {produtos.slice(0, 6).map((produto) => (
+              <div key={produto.id} className="border rounded p-4 shadow-sm">
+                <img
+                  src={produto.imageUrl}
+                  alt={produto.title}
+                  className="w-full h-32 object-cover rounded mb-3"
+                />
+                <h3 className="font-semibold text-sm">{produto.title}</h3>
+                <p className="text-gray-600 text-xs">{produto.artistHandle}</p>
+                <p className="font-bold text-sm">{produto.price}</p>
+                <p className="text-xs text-gray-500">Estoque: {produto.quantity}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

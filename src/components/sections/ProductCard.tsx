@@ -24,9 +24,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   const handleProductClick = () => {
     if (productId) {
-      navigate(`/produto?id=${productId}`);
+      navigate(`/produto/${productId}`);
     } else {
-      navigate('/produto');
+      console.warn("ProductCard: productId não foi fornecido.");
+      // Opcional: navegar para uma página de erro ou catálogo
     }
   };
 

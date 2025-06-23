@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
 import { ProductImage } from '../components/sections/ProductImage';
 import { ProductInfo } from '../components/sections/ProductInfo';
@@ -9,53 +9,52 @@ import { ProductDescription } from '../components/sections/ProductDescription';
 import { ProductQuantity } from '../components/sections/ProductQuantity';
 import { SizeSelector } from '../components/sections/SizeSelector';
 import { AddToCartButton } from '../components/sections/AddToCartButton';
-
-// Interface para os dados do produto (preparado para futura integração com banco)
-interface ProductData {
-  id: string;
-  name: string;
-  price: string;
-  description: string;
-  quantity: number;
-  dimensions: string;
-  framed: boolean;
-  artistUsername: string;
-  artistProfileImage: string;
-  productImage: string;
-  availableSizes: string[];
-}
+import { useProduct } from '../hooks/useProducts';
 
 export const VerProduto: React.FC = () => {
   const [selectedSize, setSelectedSize] = useState('P');
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
 
-  // Dados mockados do produto (no futuro virão do banco de dados)
-  const productData: ProductData = {
-    id: "1",
-    name: "Vulk",
-    price: "R$ 50.00",
-    description: "Uma obra de arte única que combina elementos modernos com técnicas tradicionais. Esta peça exclusiva do artista @Ceulazur representa a fusão entre o urbano e o natural, criando uma experiência visual impactante que transforma qualquer ambiente.",
-    quantity: 8,
-    dimensions: "20x20 cm",
-    framed: true,
-    artistUsername: "@Ceulazur",
-    artistProfileImage: "https://cdn.builder.io/api/v1/image/assets/c9e61df7bfe543a0b7e24feda3172117/235d1fa082185e9c963e83352ff5b3b837f0f7e2?placeholderIfAbsent=true",
-    productImage: "https://cdn.builder.io/api/v1/image/assets/c9e61df7bfe543a0b7e24feda3172117/8089281b600c138ef3c690b239ad0cdd8f3e8ff7?placeholderIfAbsent=true",
-    availableSizes: ['P', 'M', 'G']
-  };
+  // Busca os dados do produto pelo ID da URL
+  const { data: productData, isLoading, error } = useProduct(id || '');
 
   const handleSizeChange = (size: string) => {
     setSelectedSize(size);
   };
 
   const handleAddToCart = () => {
-    console.log(`Adicionando ao carrinho: ${productData.name}, tamanho ${selectedSize}`);
-    // Add your cart logic here
+    if (productData) {
+      console.log(`Adicionando ao carrinho: ${productData.title}, tamanho ${selectedSize}`);
+      // Add your cart logic here
+    }
   };
 
   const handleGoBack = () => {
     navigate('/catalogo');
   };
+
+  if (isLoading) {
+    return (
+      <main className="flex overflow-hidden flex-col py-5 pr-1.5 mx-auto w-full bg-white max-w-[480px]">
+        <Header />
+        <div className="flex flex-col items-center mt-4 w-full">
+          <p>Carregando produto...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (error || !productData) {
+    return (
+      <main className="flex overflow-hidden flex-col py-5 pr-1.5 mx-auto w-full bg-white max-w-[480px]">
+        <Header />
+        <div className="flex flex-col items-center mt-4 w-full">
+          <p className="text-red-600">Produto não encontrado ou erro ao carregar.</p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="flex overflow-hidden flex-col py-5 pr-1.5 mx-auto w-full bg-white max-w-[480px]">
@@ -71,12 +70,12 @@ export const VerProduto: React.FC = () => {
         </button>
 
         <ProductImage
-          src={productData.productImage}
-          alt={`${productData.name} - Arte do artista ${productData.artistUsername}`}
+          src={productData.imageUrl}
+          alt={`${productData.title} - Arte do artista ${productData.artistUsername}`}
         />
 
         <ProductInfo
-          name={productData.name}
+          name={productData.title}
           price={productData.price}
         />
 

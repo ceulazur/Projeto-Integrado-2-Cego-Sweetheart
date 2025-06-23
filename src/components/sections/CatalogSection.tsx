@@ -1,51 +1,24 @@
 import * as React from "react";
 import { ProductCard } from "./ProductCard";
+import { useProducts } from "../../hooks/useProducts";
+import { Skeleton } from "../ui/skeleton";
 
-interface Product {
-  id: string;
-  title: string;
-  artistHandle: string;
-  price: string;
-  imageUrl: string;
-}
+const CatalogSkeleton = () => (
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3.5">
+    {Array.from({ length: 4 }).map((_, index) => (
+      <div key={index} className="flex flex-col space-y-3">
+        <Skeleton className="h-[175px] w-[190px] rounded-xl" />
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-[150px]" />
+          <Skeleton className="h-4 w-[100px]" />
+        </div>
+      </div>
+    ))}
+  </div>
+);
 
-interface CatalogSectionProps {
-  products?: Product[];
-}
-
-export const CatalogSection: React.FC<CatalogSectionProps> = ({ products }) => {
-  const defaultProducts: Product[] = [
-    {
-      id: "1",
-      title: "Vulk",
-      artistHandle: "@ceulazur",
-      price: "R$ 50.00",
-      imageUrl: "https://cdn.builder.io/api/v1/image/assets/c9e61df7bfe543a0b7e24feda3172117/45610d9b421b9212bc929c32d87b7875fab83345?placeholderIfAbsent=true"
-    },
-    {
-      id: "2",
-      title: "Vulk",
-      artistHandle: "@ceulazur",
-      price: "R$ 50.00",
-      imageUrl: "https://cdn.builder.io/api/v1/image/assets/c9e61df7bfe543a0b7e24feda3172117/45610d9b421b9212bc929c32d87b7875fab83345?placeholderIfAbsent=true"
-    },
-    {
-      id: "3",
-      title: "Vulk",
-      artistHandle: "@ceulazur",
-      price: "R$ 50.00",
-      imageUrl: "https://cdn.builder.io/api/v1/image/assets/c9e61df7bfe543a0b7e24feda3172117/45610d9b421b9212bc929c32d87b7875fab83345?placeholderIfAbsent=true"
-    },
-    {
-      id: "4",
-      title: "Vulk",
-      artistHandle: "@ceulazur",
-      price: "R$ 50.00",
-      imageUrl: "https://cdn.builder.io/api/v1/image/assets/c9e61df7bfe543a0b7e24feda3172117/45610d9b421b9212bc929c32d87b7875fab83345?placeholderIfAbsent=true"
-    }
-  ];
-
-  const productsToShow = products || defaultProducts;
+export const CatalogSection: React.FC = () => {
+  const { data: products, isLoading, error } = useProducts();
 
   return (
     <section className="mt-6 w-full">
@@ -58,44 +31,37 @@ export const CatalogSection: React.FC<CatalogSectionProps> = ({ products }) => {
         </p>
         <div className="self-stretch mt-2.5 w-full border border-black border-solid min-h-px" />
       </div>
-      <div className="flex gap-4 justify-between items-center mt-3.5">
-        <ProductCard
-          title={productsToShow[0].title}
-          artistHandle={productsToShow[0].artistHandle}
-          price={productsToShow[0].price}
-          imageUrl={productsToShow[0].imageUrl}
-          productId={productsToShow[0].id}
-          className="my-auto"
-        />
-        <ProductCard
-          title={productsToShow[1].title}
-          artistHandle={productsToShow[1].artistHandle}
-          price={productsToShow[1].price}
-          imageUrl={productsToShow[1].imageUrl}
-          productId={productsToShow[1].id}
-          shadowClass="shadow-[4px_4px_4px_rgba(0,0,0,1)]"
-          className="my-auto"
-        />
-      </div>
-      <div className="flex gap-4 justify-between items-center mt-3">
-        <ProductCard
-          title={productsToShow[2].title}
-          artistHandle={productsToShow[2].artistHandle}
-          price={productsToShow[2].price}
-          imageUrl={productsToShow[2].imageUrl}
-          productId={productsToShow[2].id}
-          className="my-auto"
-        />
-        <ProductCard
-          title={productsToShow[3].title}
-          artistHandle={productsToShow[3].artistHandle}
-          price={productsToShow[3].price}
-          imageUrl={productsToShow[3].imageUrl}
-          productId={productsToShow[3].id}
-          shadowClass="shadow-[4px_4px_4px_rgba(0,0,0,1)]"
-          className="my-auto"
-        />
-      </div>
+
+      {isLoading && <CatalogSkeleton />}
+
+      {error && (
+         <p className="mt-4 text-center text-red-500">
+           Erro ao carregar produtos. Tente novamente mais tarde.
+         </p>
+      )}
+
+      {!isLoading && !error && products && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3.5">
+          {products.map((product, index) => (
+            <ProductCard
+              key={product.id}
+              title={product.title}
+              artistHandle={product.artistHandle}
+              price={product.price}
+              imageUrl={product.imageUrl}
+              productId={product.id}
+              shadowClass={index % 2 === 1 ? "shadow-[4px_4px_4px_rgba(0,0,0,1)]" : "shadow-[4px_4px_10px_rgba(0,0,0,1)]"}
+              className="my-auto"
+            />
+          ))}
+        </div>
+      )}
+
+      {!isLoading && !error && (!products || products.length === 0) && (
+        <p className="mt-4 text-center text-gray-500">
+          Nenhum produto disponível no momento.
+        </p>
+      )}
     </section>
   );
 }; 
