@@ -6,14 +6,17 @@ import {
   ShoppingBagIcon,
   UserCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { UserContext } from "../../contexts/UserContext";
+import { useAuth } from "../../contexts/AuthContext";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const { usuario } = useContext(UserContext);
+  const { usuario, loading } = useContext(UserContext);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
   const flexBetween = "flex items-center justify-between";
 
@@ -21,6 +24,15 @@ const Navbar = () => {
     setSearchTerm(e.target.value);
     // propagar esse valor para filtro global, contexto ou props
   };
+
+  const handleLogout = () => {
+    logout(); // Usa a função de logout do AuthContext
+    // Opcional: limpar o localStorage se você ainda o usa para persistência
+    localStorage.removeItem("admin-user"); 
+    navigate("/admin/login");
+  };
+
+  const serverUrl = "http://localhost:3000";
 
   return (
     <nav>
@@ -61,12 +73,14 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* Direita: ícone de perfil */}
-        <div>
+        {/* Direita: ícone de perfil e logout */}
+        <div className="flex items-center gap-4">
           <Link to="/admin/perfil" aria-label="Perfil">
-            {usuario.fotoUrl ? (
+            {loading ? (
+              <div className="h-7 w-7 rounded-full bg-gray-300 animate-pulse" />
+            ) : usuario?.fotoUrl ? (
               <img
-                src={usuario.fotoUrl}
+                src={`${serverUrl}${usuario.fotoUrl}`}
                 alt="Foto do perfil"
                 className="h-7 w-7 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-blue-500"
               />
@@ -74,6 +88,12 @@ const Navbar = () => {
               <UserCircleIcon className="h-7 w-7 text-gray-700 hover:text-blue-500 cursor-pointer" />
             )}
           </Link>
+          <button
+            onClick={handleLogout}
+            className="ml-2 px-3 py-1 text-sm rounded bg-red-100 text-red-700 hover:bg-red-200 border border-red-300"
+          >
+            Sair
+          </button>
         </div>
       </div>
 

@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import Database from 'better-sqlite3';
 import bcrypt from 'bcryptjs';
+import multer from 'multer';
 
 // Types
 interface User {
@@ -62,6 +63,7 @@ const port = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(join(__dirname, '../../public/uploads')));
 
 // Database setup
 const db = new Database(join(dirname(__dirname), '../users.db'));
@@ -177,6 +179,39 @@ if (count.count === 0) {
     );
   });
 }
+
+// Garante que os usuários admin e ceulazur existam
+const adminUsers = [
+  { email: 'admin', password: 'admin1@', firstName: 'Admin', lastName: 'Root' },
+  { email: 'ceulazur', password: 'admin2@', firstName: 'Ceulazur', lastName: 'Admin' },
+];
+
+const userExistsStmt = db.prepare('SELECT COUNT(*) as count FROM users WHERE email = ?');
+const insertUserStmt = db.prepare('INSERT INTO users (email, password, firstName, lastName) VALUES (?, ?, ?, ?)');
+
+adminUsers.forEach(async (user) => {
+  const exists = userExistsStmt.get(user.email) as { count: number };
+  if (exists.count === 0) {
+    const bcrypt = await import('bcryptjs');
+    const hash = await bcrypt.hash(user.password, 10);
+    insertUserStmt.run(user.email, hash, user.firstName, user.lastName);
+  }
+});
+
+// Configuração do multer para uploads
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, join(__dirname, '../../public/uploads'));
+    },
+    filename: (req, file, cb) => {
+      const ext = file.originalname.split('.').pop();
+      const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      cb(null, unique + '.' + ext);
+    }
+  }),
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+});
 
 // Routes
 app.get('/api/health', (_req: Request, res: Response) => {
@@ -410,6 +445,46 @@ app.get('/api/users', (_req: Request, res: Response) => {
     console.error('Erro ao buscar usuários:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
+});
+
+// Buscar dados do usuário por ID
+app.get('/api/users/:id', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const user = db.prepare('SELECT id, email, firstName, lastName, telefone, endereco, fotoUrl FROM users WHERE id = ?').get(id);
+    if (!user) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao buscar usuário' });
+  }
+});
+
+// Atualizar dados do usuário por ID
+app.put('/api/users/:id', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { firstName, lastName, telefone, endereco, fotoUrl } = req.body;
+    const stmt = db.prepare('UPDATE users SET firstName = ?, lastName = ?, telefone = ?, endereco = ?, fotoUrl = ? WHERE id = ?');
+    const result = stmt.run(firstName, lastName, telefone, endereco, fotoUrl, id);
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+    res.json({ message: 'Usuário atualizado com sucesso' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao atualizar usuário' });
+  }
+});
+
+// Endpoint para upload de imagem
+app.post('/api/upload', upload.single('file'), (req: Request, res: Response) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+  }
+  // Caminho relativo para uso no frontend
+  const relativePath = '/uploads/' + req.file.filename;
+  res.json({ url: relativePath });
 });
 
 // Start server

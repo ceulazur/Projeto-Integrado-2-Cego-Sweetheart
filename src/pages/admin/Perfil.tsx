@@ -1,50 +1,105 @@
-import React, { useState } from "react";
-import type { ChangeEvent } from "react";
-
-type Usuario = {
-  nome: string;
-  email: string;
-  telefone?: string;
-  endereco?: string;
-  fotoUrl?: string;
-};
+import React, { useState, useEffect, useContext } from "react";
+import { UserContext } from "../../contexts/UserContext";
+import { useUpdateAdminUser } from "../../hooks/useAdminUser";
 
 const Perfil = () => {
-  const [usuario, setUsuario] = useState<Usuario>({
-    nome: "Jhordanna Gonçalves",
-    email: "jhordanna@example.com",
-    telefone: "(85) 99999-9999",
-    endereco: "Rua Exemplo, 123, Quixadá - CE",
-    fotoUrl: "/src/assets/3.png", // avatar placeholder
-  });
+  const { usuario, setUsuario, loading } = useContext(UserContext);
+  const updateUser = useUpdateAdminUser();
 
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [formData, setFormData] = useState<Usuario>(usuario);
-  const [fotoPreview, setFotoPreview] = useState<string | undefined>(usuario.fotoUrl);
+  const [formData, setFormData] = useState({
+    nome: "",
+    email: "",
+    telefone: "",
+    endereco: "",
+    fotoUrl: "",
+  });
+  const [fotoPreview, setFotoPreview] = useState<string | undefined>("");
+  const serverUrl = "http://localhost:3000";
 
-  // Atualiza os campos de texto
+  useEffect(() => {
+    if (usuario) {
+      setFormData({
+        nome: usuario.nome || "",
+        email: usuario.email || "",
+        telefone: usuario.telefone || "",
+        endereco: usuario.endereco || "",
+        fotoUrl: usuario.fotoUrl || "",
+      });
+      setFotoPreview(usuario.fotoUrl ? `${serverUrl}${usuario.fotoUrl}` : "");
+    }
+  }, [usuario]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Atualiza preview da foto ao selecionar arquivo
-  const handleFotoChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files && e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFotoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-      // Opcionalmente, você pode salvar o arquivo para enviar no backend depois
+      const preview = URL.createObjectURL(file);
+      setFotoPreview(preview);
+      
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      try {
+        const res = await fetch(`${serverUrl}/api/upload`, {
+          method: 'POST',
+          body: uploadFormData,
+        });
+        const data = await res.json();
+        if (res.ok && data.url) {
+          setFormData((prev) => ({ ...prev, fotoUrl: data.url }));
+        } else {
+          alert('Erro ao fazer upload da imagem');
+          setFotoPreview(usuario?.fotoUrl ? `${serverUrl}${usuario.fotoUrl}` : "");
+        }
+      } catch {
+        alert('Erro ao conectar com o servidor de upload');
+        setFotoPreview(usuario?.fotoUrl ? `${serverUrl}${usuario.fotoUrl}` : "");
+      }
     }
   };
 
-  const salvarEdicao = () => {
-    // Atualiza o usuario com os dados do formulário e a nova foto (preview)
-    setUsuario({ ...formData, fotoUrl: fotoPreview });
-    setIsEditOpen(false);
+  const salvarEdicao = async () => {
+    if (!usuario) return;
+
+    const [firstName, ...lastNameParts] = formData.nome.split(' ');
+    const lastName = lastNameParts.join(' ');
+
+    try {
+      await updateUser.mutateAsync({
+        id: usuario.id.toString(),
+        firstName: firstName,
+        lastName: lastName,
+        telefone: formData.telefone,
+        endereco: formData.endereco,
+        fotoUrl: formData.fotoUrl,
+      });
+
+      const updatedUser = {
+        ...usuario,
+        nome: formData.nome,
+        telefone: formData.telefone,
+        endereco: formData.endereco,
+        fotoUrl: formData.fotoUrl,
+      };
+      setUsuario(updatedUser);
+      
+      setIsEditOpen(false);
+    } catch {
+      alert("Erro ao atualizar perfil");
+    }
   };
+
+  if (loading) {
+    return <div className="p-8 pt-24 max-w-3xl mx-auto">Carregando perfil...</div>;
+  }
+  if (!usuario) {
+    return <div className="p-8 pt-24 max-w-3xl mx-auto text-red-600">Erro ao carregar perfil. Faça login novamente.</div>;
+  }
+
+  const displayFotoUrl = usuario.fotoUrl ? `${serverUrl}${usuario.fotoUrl}` : "https://via.placeholder.com/150";
 
   return (
     <div className="p-8 pt-24 max-w-3xl mx-auto">
@@ -52,7 +107,7 @@ const Perfil = () => {
 
       <div className="flex flex-col items-center gap-6 border rounded p-6 shadow">
         <img
-          src={usuario.fotoUrl || "https://via.placeholder.com/150"}
+          src={displayFotoUrl}
           alt="Foto do usuário"
           className="w-32 h-32 rounded-full object-cover"
         />
@@ -65,8 +120,7 @@ const Perfil = () => {
         <button
           onClick={() => {
             setIsEditOpen(true);
-            setFormData(usuario);
-            setFotoPreview(usuario.fotoUrl);
+            setFotoPreview(displayFotoUrl);
           }}
           className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition"
         >
@@ -101,16 +155,15 @@ const Perfil = () => {
                 name="nome"
                 value={formData.nome}
                 onChange={handleChange}
-                placeholder="Nome"
+                placeholder="Nome Completo"
                 className="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="email"
                 name="email"
                 value={formData.email}
-                onChange={handleChange}
-                placeholder="Email"
-                className="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled
+                className="border p-2 rounded bg-gray-100 cursor-not-allowed"
               />
               <input
                 type="text"
@@ -140,8 +193,9 @@ const Perfil = () => {
               <button
                 onClick={salvarEdicao}
                 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                disabled={updateUser.isLoading}
               >
-                Salvar
+                {updateUser.isLoading ? "Salvando..." : "Salvar"}
               </button>
             </div>
           </div>
@@ -151,4 +205,4 @@ const Perfil = () => {
   );
 };
 
-export default Perfil; 
+export default Perfil;

@@ -19,8 +19,23 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
+  useEffect(() => {
+    // Tenta carregar o usuário do localStorage ao iniciar a aplicação
+    const storedUser = localStorage.getItem('admin-user');
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error("Erro ao parsear usuário do localStorage", error);
+        localStorage.removeItem('admin-user');
+      }
+    }
+  }, []);
+
   const logout = () => {
     setUser(null);
+    // Limpa o usuário do localStorage ao fazer logout
+    localStorage.removeItem('admin-user');
   };
 
   const value = {
