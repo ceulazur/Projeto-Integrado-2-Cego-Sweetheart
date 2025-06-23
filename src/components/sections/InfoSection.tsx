@@ -29,7 +29,7 @@ export const InfoSection: React.FC = () => {
             <ActionButton 
               variant="primary" 
               className="w-[180px] -ml-1 h-[40px] flex items-center justify-center"
-              onClick={() => navigateAndScroll('/login')}
+              onClick={() => navigateAndScroll('/catalogo')}
             >
               Comprar agora
             </ActionButton>

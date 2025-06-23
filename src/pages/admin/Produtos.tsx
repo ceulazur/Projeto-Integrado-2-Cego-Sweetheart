@@ -129,14 +129,44 @@ const Produtos = () => {
     setEditingProduct(null);
   };
 
-  // Atualiza campos do formulário
+  // Função utilitária para formatar preço
+  function formatarPreco(valor: string) {
+    const num = valor.replace(/[^\d,.]/g, '').replace(',', '.');
+    const float = parseFloat(num);
+    if (isNaN(float)) return '';
+    return `R$ ${float.toFixed(2).replace('.', ',')}`;
+  }
+
+  // Função utilitária para formatar dimensões
+  function formatarDimensoes(valor: string) {
+    // Remove espaços, troca X/x por x, separa por x
+    return valor
+      .replace(/[^\dxX]/g, '')
+      .replace(/[xX]+/g, 'x')
+      .replace(/(\d+)x(\d+)/g, (m, a, b) => `${parseInt(a)}x${parseInt(b)}`)
+      .replace(/x+$/, '');
+  }
+
+  // Atualiza campos do formulário com máscara
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target;
+    let newValue = value;
+    if (name === 'price') {
+      newValue = formatarPreco(value);
+    }
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : newValue,
+    }));
+  };
+
+  // Formata dimensões ao sair do campo
+  const handleDimensionsBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({
+      ...prev,
+      dimensions: formatarDimensoes(prev.dimensions),
     }));
   };
 
@@ -206,6 +236,24 @@ const Produtos = () => {
   // Salvar produto
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    // Validações obrigatórias
+    if (!formData.title.trim()) {
+      alert('O nome do produto é obrigatório.');
+      return;
+    }
+    if (!formData.quantity || isNaN(Number(formData.quantity)) || Number(formData.quantity) <= 0) {
+      alert('A quantidade deve ser maior que zero.');
+      return;
+    }
+    if (!formData.dimensions.trim()) {
+      alert('As dimensões são obrigatórias.');
+      return;
+    }
+    // Imagem obrigatória só ao criar
+    if (!editingProduct && !formData.imageUrl) {
+      alert('A imagem do produto é obrigatória ao criar.');
+      return;
+    }
     // Validar campos obrigatórios
     if (
       !formData.title ||
@@ -407,7 +455,6 @@ const Produtos = () => {
                     value={formData.imageUrl}
                     onChange={handleChange}
                     className="border p-2 rounded"
-                    required
                   />
                   <div className="flex flex-col gap-2">
                     <label className="font-medium">Ou envie uma imagem:</label>
@@ -432,7 +479,6 @@ const Produtos = () => {
                     type="file"
                     accept="image/*"
                     onChange={handleProductImageChange}
-                    required
                   />
                   {productImagePreview && (
                     <img
@@ -467,6 +513,7 @@ const Produtos = () => {
                 placeholder="Dimensões"
                 value={formData.dimensions}
                 onChange={handleChange}
+                onBlur={handleDimensionsBlur}
                 className="border p-2 rounded"
               />
               <div className="flex items-center gap-2">

@@ -13,7 +13,7 @@ export const ArtistInfo: React.FC<ArtistInfoProps> = ({ username, profileImage }
       </h3>
       <img
         src={profileImage}
-        className="object-contain self-center mt-2.5 w-full aspect-[1.03]"
+        className="object-cover self-center mt-2.5 w-16 h-16 rounded-full border-2 border-blue-600"
         alt={`Perfil do artista ${username}`}
       />
       <p className="mt-2.5 text-base font-semibold text-indigo-800">
