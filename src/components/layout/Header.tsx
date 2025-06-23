@@ -15,6 +15,10 @@ export const Header: React.FC = () => {
     }
   };
 
+  const handleAdminClick = () => {
+    navigateAndScroll('/admin');
+  };
+
   return (
     <header className="w-full bg-white">
       <div className="max-w-[1000px] mx-auto pl-0 pr-8">
@@ -72,6 +76,16 @@ export const Header: React.FC = () => {
             />
             <span>{isAuthenticated ? `Olá, ${user?.firstName}` : 'Minha conta'}</span>
           </button>
+
+          {/* Link para Admin */}
+          {isAuthenticated && (
+            <button 
+              className="text-sm text-purple-600 font-inter font-bold hover:text-purple-800 transition-colors"
+              onClick={handleAdminClick}
+            >
+              Admin
+            </button>
+          )}
 
           {/* Ícone de pesquisa */}
           <button className="text-blue-900">
