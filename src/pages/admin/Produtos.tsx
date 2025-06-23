@@ -354,8 +354,8 @@ const Produtos = () => {
 
       {/* Modal para adicionar/editar produto */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-lg w-full max-w-md p-6 relative shadow-lg">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 overflow-auto">
+          <div className="bg-white rounded-lg w-full max-w-md p-6 relative shadow-lg max-h-[90vh] overflow-y-auto">
             <button
               onClick={fecharModal}
               className="absolute top-4 right-4 text-gray-600 hover:text-gray-900"
