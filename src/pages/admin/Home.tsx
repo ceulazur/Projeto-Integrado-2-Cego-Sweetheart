@@ -1,20 +1,43 @@
 import { Link } from "react-router-dom";
 import { useProducts } from "../../hooks/useProducts";
+import { useEffect, useState } from "react";
+
+type PedidoStatus = "Cancelado" | "Enviado" | "Em aberto" | "Concluído";
+type Pedido = {
+  id: number;
+  clienteNome: string;
+  clienteId: string;
+  status: PedidoStatus;
+  data: string;
+  produtoId: number;
+  produtoNome: string;
+  formaPagamento: string;
+  codigoRastreio?: string;
+};
 
 const Home = () => {
   const { data: produtos, isLoading } = useProducts();
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
+  const [loadingPedidos, setLoadingPedidos] = useState(true);
+
+  useEffect(() => {
+    fetch("http://localhost:3000/api/pedidos")
+      .then(res => res.json())
+      .then(data => setPedidos(data))
+      .finally(() => setLoadingPedidos(false));
+  }, []);
 
   // Calcular estatísticas baseadas nos dados reais
   const totalProdutos = produtos?.length || 0;
   const produtosComEstoque = produtos?.filter(p => p.quantity > 0).length || 0;
   const produtosSemEstoque = produtos?.filter(p => p.quantity === 0).length || 0;
   
-  // Dados simulados para pedidos (pode ser integrado com API de pedidos no futuro)
-  const pedidosEmAberto = 5;
-  const pedidosEnviados = 12;
-  const pedidosCancelados = 3;
+  // Estatísticas reais dos pedidos
+  const pedidosEmAberto = pedidos.filter((p) => p.status === 'Em aberto').length;
+  const pedidosEnviados = pedidos.filter((p) => p.status === 'Enviado').length;
+  const pedidosCancelados = pedidos.filter((p) => p.status === 'Cancelado').length;
 
-  if (isLoading) {
+  if (isLoading || loadingPedidos) {
     return (
       <div className="p-8 pt-24 max-w-6xl mx-auto">
         <div className="text-center">

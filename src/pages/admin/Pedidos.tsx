@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 type PedidoStatus = "Cancelado" | "Enviado" | "Em aberto" | "Concluído";
 
@@ -55,11 +55,18 @@ const statusColors: Record<PedidoStatus, string> = {
 };
 
 const Pedidos = () => {
-  const [pedidos, setPedidos] = useState<Pedido[]>(pedidosData);
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [modalAberto, setModalAberto] = useState(false);
   const [pedidoSelecionado, setPedidoSelecionado] = useState<Pedido | null>(null);
   const [codigoRastreio, setCodigoRastreio] = useState("");
   const [statusSelecionado, setStatusSelecionado] = useState<PedidoStatus>("Em aberto");
+
+  useEffect(() => {
+    fetch("http://localhost:3000/api/pedidos")
+      .then(res => res.json())
+      .then(data => setPedidos(data))
+      .catch(() => setPedidos([]));
+  }, []);
 
   const abrirModal = (pedido: Pedido) => {
     setPedidoSelecionado(pedido);
@@ -73,18 +80,22 @@ const Pedidos = () => {
     setPedidoSelecionado(null);
   };
 
-  const salvarAlteracoes = () => {
+  const salvarAlteracoes = async () => {
     if (!pedidoSelecionado) return;
-
-    const novosPedidos = pedidos.map((p) =>
-      p.id === pedidoSelecionado.id
-        ? { ...p, codigoRastreio, status: statusSelecionado }
-        : p
-    );
-
-    setPedidos(novosPedidos);
-    alert(`Pedido atualizado com sucesso!`);
-    fecharModal();
+    try {
+      await fetch(`http://localhost:3000/api/pedidos/${pedidoSelecionado.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: statusSelecionado, codigoRastreio }),
+      });
+      // Recarrega os pedidos do backend
+      const res = await fetch('http://localhost:3000/api/pedidos');
+      setPedidos(await res.json());
+      alert('Pedido atualizado com sucesso!');
+      fecharModal();
+    } catch (e) {
+      alert('Erro ao atualizar pedido');
+    }
   };
 
   return (

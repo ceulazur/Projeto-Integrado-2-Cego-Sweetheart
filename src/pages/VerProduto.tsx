@@ -10,11 +10,14 @@ import { ProductQuantity } from '../components/sections/ProductQuantity';
 import { SizeSelector } from '../components/sections/SizeSelector';
 import { AddToCartButton } from '../components/sections/AddToCartButton';
 import { useProduct } from '../hooks/useProducts';
+import { useContext } from 'react';
+import { UserContext } from '../contexts/UserContext';
 
 export const VerProduto: React.FC = () => {
   const [selectedSize, setSelectedSize] = useState('P');
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { usuario } = useContext(UserContext);
 
   // Busca os dados do produto pelo ID da URL
   const { data: productData, isLoading, error } = useProduct(id || '');
@@ -23,10 +26,34 @@ export const VerProduto: React.FC = () => {
     setSelectedSize(size);
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
+    if (!usuario) {
+      alert('Você precisa estar logado para comprar.');
+      navigate('/login');
+      return;
+    }
     if (productData) {
-      console.log(`Adicionando ao carrinho: ${productData.title}, tamanho ${selectedSize}`);
-      // Add your cart logic here
+      try {
+        const res = await fetch('http://localhost:3000/api/pedidos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clienteNome: usuario.nome,
+            clienteId: usuario.id,
+            produtoId: productData.id,
+            produtoNome: productData.title,
+            formaPagamento: 'Pix',
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert('Pedido realizado com sucesso!');
+        } else {
+          alert(data.error || 'Erro ao criar pedido');
+        }
+      } catch (e) {
+        alert('Erro ao conectar com o servidor.');
+      }
     }
   };
 

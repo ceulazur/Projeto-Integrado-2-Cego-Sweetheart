@@ -34,6 +34,7 @@ export const LoginForm: React.FC = () => {
       
       if (response.ok) {
         setUser(data.user);
+        localStorage.setItem('admin-user', JSON.stringify(data.user));
         toast.success('Login realizado com sucesso!');
         navigateAndScroll('/');
       } else {

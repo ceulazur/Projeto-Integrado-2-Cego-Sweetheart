@@ -95,6 +95,18 @@ db.exec(`
     availableSizes TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS pedidos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    clienteNome TEXT,
+    clienteId TEXT,
+    status TEXT,
+    data TEXT,
+    produtoId INTEGER,
+    produtoNome TEXT,
+    formaPagamento TEXT,
+    codigoRastreio TEXT
+  );
 `);
 
 // Check if products table is empty
@@ -553,6 +565,74 @@ app.get('/api/artists', (_req: Request, res: Response) => {
     res.json(artists);
   } catch (error) {
     console.error('Erro ao buscar artistas:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Rota para criar pedido e baixar estoque
+app.post('/api/pedidos', express.json(), (req: Request, res: Response) => {
+  try {
+    const { clienteNome, clienteId, produtoId, produtoNome, formaPagamento } = req.body;
+    if (!clienteNome || !clienteId || !produtoId || !produtoNome || !formaPagamento) {
+      res.status(400).json({ error: 'Campos obrigatórios faltando' });
+      return;
+    }
+    // Verifica estoque
+    const produto = db.prepare('SELECT quantity FROM products WHERE id = ?').get(produtoId);
+    if (!produto || produto.quantity < 1) {
+      res.status(400).json({ error: 'Produto sem estoque' });
+      return;
+    }
+    // Baixa estoque
+    db.prepare('UPDATE products SET quantity = quantity - 1 WHERE id = ?').run(produtoId);
+    // Cria pedido
+    const stmt = db.prepare(`
+      INSERT INTO pedidos (clienteNome, clienteId, status, data, produtoId, produtoNome, formaPagamento, codigoRastreio)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    const dataAtual = new Date().toISOString().slice(0, 10);
+    stmt.run(
+      clienteNome,
+      clienteId,
+      'Em aberto',
+      dataAtual,
+      produtoId,
+      produtoNome,
+      formaPagamento,
+      ''
+    );
+    res.status(201).json({ message: 'Pedido criado com sucesso' });
+  } catch (error) {
+    console.error('Erro ao criar pedido:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Rota para listar todos os pedidos
+app.get('/api/pedidos', (req: Request, res: Response) => {
+  try {
+    const pedidos = db.prepare('SELECT * FROM pedidos ORDER BY id DESC').all();
+    res.json(pedidos);
+  } catch (error) {
+    console.error('Erro ao buscar pedidos:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Rota para atualizar status e codigoRastreio do pedido
+app.put('/api/pedidos/:id', express.json(), (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status, codigoRastreio } = req.body;
+    const stmt = db.prepare('UPDATE pedidos SET status = ?, codigoRastreio = ? WHERE id = ?');
+    const result = stmt.run(status, codigoRastreio, id);
+    if (result.changes === 0) {
+      res.status(404).json({ error: 'Pedido não encontrado' });
+    } else {
+      res.json({ message: 'Pedido atualizado com sucesso' });
+    }
+  } catch (error) {
+    console.error('Erro ao atualizar pedido:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
