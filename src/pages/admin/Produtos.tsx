@@ -1,16 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import type { ChangeEvent, FormEvent } from "react";
 import { PlusCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, Product } from "../../hooks/useProducts";
+import { useFilters } from "../../contexts/FilterContext";
 
 const Produtos = () => {
   const { data: produtos, isLoading, error } = useProducts();
+  const { filters } = useFilters();
   const createProductMutation = useCreateProduct();
   const updateProductMutation = useUpdateProduct();
   const deleteProductMutation = useDeleteProduct();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // Estado do formulário de produto
   const [formData, setFormData] = useState({
@@ -26,6 +31,18 @@ const Produtos = () => {
     artistProfileImage: "",
     availableSizes: ['P', 'M', 'G'] as string[]
   });
+
+  // Efeito para abrir o modal se um produto for passado via state da rota
+  useEffect(() => {
+    if (location.state?.productToEdit) {
+      // O React Router v6 usa `location.state`
+      const product = location.state.productToEdit as Product;
+      editarProduto(product);
+
+      // Limpa o state para não reabrir o modal em re-renderizações
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state]);
 
   const editarProduto = (produto: Product) => {
     setEditingProduct(produto);
@@ -138,6 +155,47 @@ const Produtos = () => {
     }
   };
 
+  const filteredAndSortedProducts = useMemo(() => {
+    if (!produtos) return [];
+
+    let items = [...produtos];
+
+    // 1. Filtragem
+    items = items.filter(p => {
+      // Preço
+      const price = parseFloat(p.price.replace('R$', '').replace(',', '.'));
+      if (price > filters.priceRange.max) return false;
+      // Estoque
+      if (filters.inStockOnly && p.quantity === 0) return false;
+      // Moldura
+      if (filters.frameStatus === 'framed' && !p.framed) return false;
+      if (filters.frameStatus === 'unframed' && p.framed) return false;
+
+      return true;
+    });
+
+    // 2. Ordenação
+    items.sort((a, b) => {
+      const priceA = parseFloat(a.price.replace('R$', '').replace(',', '.'));
+      const priceB = parseFloat(b.price.replace('R$', '').replace(',', '.'));
+
+      switch (filters.sortBy) {
+        case 'price-asc':
+          return priceA - priceB;
+        case 'price-desc':
+          return priceB - priceA;
+        case 'title-asc':
+          return a.title.localeCompare(b.title);
+        case 'title-desc':
+          return b.title.localeCompare(a.title);
+        default:
+          return 0;
+      }
+    });
+
+    return items;
+  }, [produtos, filters]);
+
   if (isLoading) {
     return (
       <div className="p-8 pt-24">
@@ -174,42 +232,49 @@ const Produtos = () => {
 
       {/* Grid de produtos */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {produtos?.map((produto) => (
-          <div
-            key={produto.id}
-            className="border rounded shadow p-4 flex flex-col justify-between"
-          >
-            <div>
-              <img
-                src={produto.imageUrl}
-                alt={produto.title}
-                className="w-full h-48 object-cover mb-4 rounded"
-              />
-              <h2 className="text-lg font-semibold">{produto.title}</h2>
-              <p className="text-sm text-gray-500 mb-2">
-                Artista: {produto.artistHandle}
-              </p>
-              <p className="text-gray-600 mb-2">{produto.description}</p>
-              <p className="font-bold">{produto.price}</p>
-              <p className="text-sm text-gray-500">Quantidade: {produto.quantity}</p>
-            </div>
+        {filteredAndSortedProducts.length > 0 ? (
+          filteredAndSortedProducts.map((produto) => (
+            <div
+              key={produto.id}
+              className="border rounded shadow p-4 flex flex-col justify-between"
+            >
+              <div>
+                <img
+                  src={produto.imageUrl}
+                  alt={produto.title}
+                  className="w-full h-48 object-cover mb-4 rounded"
+                />
+                <h2 className="text-lg font-semibold">{produto.title}</h2>
+                <p className="text-sm text-gray-500 mb-2">
+                  Artista: {produto.artistHandle}
+                </p>
+                <p className="text-gray-600 mb-2">{produto.description}</p>
+                <p className="font-bold">{produto.price}</p>
+                <p className="text-sm text-gray-500">Quantidade: {produto.quantity}</p>
+              </div>
 
-            <div className="mt-4 flex gap-3 justify-end">
-              <button
-                onClick={() => editarProduto(produto)}
-                className="bg-purple-600 text-white px-4 py-1 rounded hover:bg-purple-700"
-              >
-                Editar
-              </button>
-              <button
-                onClick={() => excluirProduto(produto.id)}
-                className="bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700"
-              >
-                Excluir
-              </button>
+              <div className="mt-4 flex gap-3 justify-end">
+                <button
+                  onClick={() => editarProduto(produto)}
+                  className="bg-purple-600 text-white px-4 py-1 rounded hover:bg-purple-700"
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={() => excluirProduto(produto.id)}
+                  className="bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700"
+                >
+                  Excluir
+                </button>
+              </div>
             </div>
+          ))
+        ) : (
+          <div className="col-span-full text-center py-12">
+            <h3 className="text-lg font-semibold">Nenhum produto encontrado</h3>
+            <p className="text-gray-500">Tente ajustar os filtros para encontrar o que procura.</p>
           </div>
-        ))}
+        )}
       </div>
 
       {/* Modal para adicionar/editar produto */}

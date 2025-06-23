@@ -12,6 +12,7 @@ import Catalogo from "./pages/Catalogo";
 import VerProduto from "./pages/VerProduto";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { UserProvider } from "./contexts/UserContext";
+import { FilterProvider } from "./contexts/FilterContext";
 
 // Admin pages
 import AdminLayout from "./components/admin/AdminLayout";
@@ -44,33 +45,35 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <UserProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-              {/* Rotas públicas */}
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-              <Route path="/catalogo" element={<Catalogo />} />
-              <Route path="/produto/:id" element={<VerProduto />} />
-              
-              {/* Login admin */}
-              <Route path="/admin/login" element={<AdminLogin />} />
-              
-              {/* Rotas de admin protegidas */}
-              <Route path="/admin" element={<RequireAdminAuth><AdminLayout><AdminHome /></AdminLayout></RequireAdminAuth>} />
-              <Route path="/admin/home" element={<RequireAdminAuth><AdminLayout><AdminHome /></AdminLayout></RequireAdminAuth>} />
-              <Route path="/admin/produtos" element={<RequireAdminAuth><AdminLayout><AdminProdutos /></AdminLayout></RequireAdminAuth>} />
-              <Route path="/admin/pedidos" element={<RequireAdminAuth><AdminLayout><AdminPedidos /></AdminLayout></RequireAdminAuth>} />
-              <Route path="/admin/perfil" element={<RequireAdminAuth><AdminLayout><AdminPerfil /></AdminLayout></RequireAdminAuth>} />
-              
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+        <FilterProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                  {/* Rotas públicas */}
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                  <Route path="/catalogo" element={<Catalogo />} />
+                  <Route path="/produto/:id" element={<VerProduto />} />
+                  
+                  {/* Login admin */}
+                  <Route path="/admin/login" element={<AdminLogin />} />
+                  
+                  {/* Rotas de admin protegidas */}
+                  <Route path="/admin" element={<RequireAdminAuth><AdminLayout><AdminHome /></AdminLayout></RequireAdminAuth>} />
+                  <Route path="/admin/home" element={<RequireAdminAuth><AdminLayout><AdminHome /></AdminLayout></RequireAdminAuth>} />
+                  <Route path="/admin/produtos" element={<RequireAdminAuth><AdminLayout><AdminProdutos /></AdminLayout></RequireAdminAuth>} />
+                  <Route path="/admin/pedidos" element={<RequireAdminAuth><AdminLayout><AdminPedidos /></AdminLayout></RequireAdminAuth>} />
+                  <Route path="/admin/perfil" element={<RequireAdminAuth><AdminLayout><AdminPerfil /></AdminLayout></RequireAdminAuth>} />
+                  
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </FilterProvider>
       </UserProvider>
     </AuthProvider>
   </QueryClientProvider>

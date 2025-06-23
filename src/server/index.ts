@@ -246,6 +246,34 @@ app.get('/api/products', (_req: Request, res: Response) => {
   }
 });
 
+// Search for products
+app.get('/api/products/search', (req: Request, res: Response) => {
+  try {
+    const query = req.query.q;
+    if (typeof query !== 'string' || query.trim() === '') {
+      return res.json([]);
+    }
+
+    const searchQuery = `%${query}%`;
+    // Retorna todos os campos do produto para popular o formulário de edição
+    const products = db.prepare(
+      'SELECT * FROM products WHERE title LIKE ? LIMIT 10'
+    ).all(searchQuery) as Product[];
+
+    const transformedProducts = products.map(product => ({
+      ...product,
+      id: product.id.toString(),
+      framed: Boolean(product.framed),
+      availableSizes: JSON.parse(product.availableSizes)
+    }));
+
+    res.json(transformedProducts);
+  } catch (error) {
+    console.error('Erro ao pesquisar produtos:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
 // Get product by ID
 app.get('/api/products/:id', (req: Request, res: Response) => {
   try {
