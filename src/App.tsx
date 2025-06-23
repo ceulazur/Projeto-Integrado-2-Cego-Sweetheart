@@ -46,15 +46,15 @@ const App = () => (
     <AuthProvider>
       <UserProvider>
         <FilterProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
                   {/* Rotas públicas */}
-                <Route path="/" element={<Index />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
                   <Route path="/catalogo" element={<Catalogo />} />
                   <Route path="/produto/:id" element={<VerProduto />} />
                   
@@ -68,11 +68,11 @@ const App = () => (
                   <Route path="/admin/pedidos" element={<RequireAdminAuth><AdminLayout><AdminPedidos /></AdminLayout></RequireAdminAuth>} />
                   <Route path="/admin/perfil" element={<RequireAdminAuth><AdminLayout><AdminPerfil /></AdminLayout></RequireAdminAuth>} />
                   
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
         </FilterProvider>
       </UserProvider>
     </AuthProvider>

@@ -64,6 +64,7 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(join(__dirname, '../../public/uploads')));
+app.use('/products_image/uploads', express.static(join(__dirname, '../../public/products_image/uploads')));
 
 // Database setup
 const db = new Database(join(dirname(__dirname), '../users.db'));
@@ -184,6 +185,7 @@ if (count.count === 0) {
 const adminUsers = [
   { email: 'admin', password: 'admin1@', firstName: 'Admin', lastName: 'Root' },
   { email: 'ceulazur', password: 'admin2@', firstName: 'Ceulazur', lastName: 'Admin' },
+  { email: 'artemisia', password: 'admin3@', firstName: 'Artemisia', lastName: 'Gentileschi' },
 ];
 
 const userExistsStmt = db.prepare('SELECT COUNT(*) as count FROM users WHERE email = ?');
@@ -211,6 +213,21 @@ const upload = multer({
     }
   }),
   limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+});
+
+// Configuração do multer para uploads de produtos
+const productImageUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, join(__dirname, '../../public/products_image/uploads'));
+    },
+    filename: (req, file, cb) => {
+      const ext = file.originalname.split('.').pop();
+      const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      cb(null, unique + '.' + ext);
+    }
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
 
 // Routes
@@ -512,6 +529,18 @@ app.post('/api/upload', upload.single('file'), (req: Request, res: Response) => 
   }
   // Caminho relativo para uso no frontend
   const relativePath = '/uploads/' + req.file.filename;
+  res.json({ url: relativePath });
+});
+
+// Rota para upload de imagem de produto
+app.post('/api/upload/product-image', productImageUpload.single('file'), (req: Request, res: Response) => {
+  if (!req.file) {
+    console.error('Nenhum arquivo enviado para upload de produto!');
+    return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+  }
+  // Caminho relativo para uso no frontend
+  const relativePath = `/products_image/uploads/${req.file.filename}`;
+  console.log('Imagem de produto salva em:', relativePath);
   res.json({ url: relativePath });
 });
 

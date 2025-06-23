@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect, useContext } from "react";
 import type { ReactNode } from "react";
 import { useAuth } from "./AuthContext"; // Importar o hook useAuth
 
-type Usuario = {
+export type Usuario = {
   id: number;
   nome: string;
   email: string;
