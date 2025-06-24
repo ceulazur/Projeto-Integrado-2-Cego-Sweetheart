@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import type { ChangeEvent, FormEvent } from "react";
 import { PlusCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, Product } from "../../hooks/useProducts";
+import { useVendors, type Vendor } from "../../hooks/useVendors";
 import { useFilters } from "../../contexts/FilterContext";
 import { UserContext } from "../../contexts/UserContext";
 import type { Usuario } from "../../contexts/UserContext";
@@ -10,6 +11,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 const Produtos = () => {
   const { data: produtos, isLoading, error } = useProducts();
+  const { data: vendors, isLoading: vendorsLoading } = useVendors();
   const { filters } = useFilters();
   const createProductMutation = useCreateProduct();
   const updateProductMutation = useUpdateProduct();
@@ -17,6 +19,7 @@ const Produtos = () => {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { usuario } = useContext(UserContext);
@@ -25,24 +28,50 @@ const Produtos = () => {
   // Estado do formulário de produto
   const [formData, setFormData] = useState({
     title: "",
-    artistHandle: "",
     price: "",
-    imageUrl: "",
     description: "",
     quantity: "",
     dimensions: "",
     framed: false,
-    artistUsername: "",
-    artistProfileImage: "",
     availableSizes: ['P', 'M', 'G'] as string[]
   });
 
   const [productImagePreview, setProductImagePreview] = useState<string>("");
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
   const serverUrl = "http://localhost:3000";
 
   // Identificação de admin
   const isAdmin = usuario && (usuario.nome === "admin" || usuario.email === "admin");
-  // Dados fixos dos vendedores
+  
+  // Função para obter dados do artista baseado no vendedor selecionado
+  const getArtistDataFromVendor = (vendor: Vendor | null) => {
+    if (!vendor) return { artistHandle: '', artistUsername: '', artistProfileImage: '' };
+    
+    // Mapeia os vendedores conhecidos
+    if (vendor.email === 'ceulazur' || vendor.firstName === 'Ceulazur') {
+      return {
+        artistHandle: '@ceulazur',
+        artistUsername: 'Ceulazur',
+        artistProfileImage: vendor.fotoUrl || ''
+      };
+    }
+    if (vendor.email === 'artemisia' || vendor.firstName === 'Artemisia') {
+      return {
+        artistHandle: '@artemisia',
+        artistUsername: 'Artemisia Gentileschi',
+        artistProfileImage: vendor.fotoUrl || ''
+      };
+    }
+    
+    // Para outros vendedores, usa o nome completo
+    return {
+      artistHandle: `@${vendor.firstName.toLowerCase()}`,
+      artistUsername: `${vendor.firstName} ${vendor.lastName}`,
+      artistProfileImage: vendor.fotoUrl || ''
+    };
+  };
+  
+  // Dados fixos dos vendedores (para usuários não-admin)
   const getArtistData = (usuario: Usuario | null) => {
     if (!usuario) return { artistHandle: '', artistUsername: '', artistProfileImage: '' };
     if (usuario.nome === 'Ceulazur' || usuario.email === 'ceulazur') {
@@ -61,7 +90,9 @@ const Produtos = () => {
     }
     return { artistHandle: '', artistUsername: '', artistProfileImage: '' };
   };
-  const artistData = getArtistData(usuario);
+  
+  // Usa o vendedor selecionado se for admin, senão usa os dados do usuário atual
+  const artistData = isAdmin ? getArtistDataFromVendor(selectedVendor) : getArtistData(usuario);
 
   // Efeito para abrir o modal se um produto for passado via state da rota
   useEffect(() => {
@@ -77,20 +108,27 @@ const Produtos = () => {
 
   const editarProduto = (produto: Product) => {
     setEditingProduct(produto);
+    
+    // Se for admin, encontra o vendedor correspondente ao produto
+    if (isAdmin && vendors) {
+      const vendor = vendors.find(vendor => {
+        const artistData = getArtistDataFromVendor(vendor);
+        return artistData.artistHandle === produto.artistHandle;
+      });
+      setSelectedVendor(vendor || null);
+    }
+    
     setFormData({
       title: produto.title,
-      artistHandle: produto.artistHandle,
       price: produto.price,
-      imageUrl: produto.imageUrl,
       description: produto.description,
       quantity: produto.quantity.toString(),
       dimensions: produto.dimensions,
       framed: produto.framed,
-      artistUsername: produto.artistUsername,
-      artistProfileImage: produto.artistProfileImage,
       availableSizes: produto.availableSizes
     });
     setProductImagePreview(produto.imageUrl ? (produto.imageUrl.startsWith('http') ? produto.imageUrl : `${serverUrl}${produto.imageUrl}`) : "");
+    setUploadedImageUrl(produto.imageUrl || "");
     setIsModalOpen(true);
   };
 
@@ -107,20 +145,18 @@ const Produtos = () => {
 
   const abrirModal = () => {
     setEditingProduct(null);
+    setSelectedVendor(null);
     setFormData({
       title: "",
-      artistHandle: "",
       price: "",
-      imageUrl: "",
       description: "",
       quantity: "",
       dimensions: "",
       framed: false,
-      artistUsername: "",
-      artistProfileImage: "",
       availableSizes: ['P', 'M', 'G']
     });
     setProductImagePreview("");
+    setUploadedImageUrl("");
     setIsModalOpen(true);
   };
 
@@ -187,16 +223,16 @@ const Produtos = () => {
         if (res.ok && data.url) {
           // Preview já do backend
           setProductImagePreview(`${serverUrl}${data.url}`);
-          setFormData((prev) => ({ ...prev, imageUrl: data.url }));
+          setUploadedImageUrl(data.url);
         } else {
           alert('Erro ao fazer upload da imagem');
           setProductImagePreview("");
-          setFormData((prev) => ({ ...prev, imageUrl: "" }));
+          setUploadedImageUrl("");
         }
       } catch {
         alert('Erro ao conectar com o servidor de upload');
         setProductImagePreview("");
-        setFormData((prev) => ({ ...prev, imageUrl: "" }));
+        setUploadedImageUrl("");
       }
     }
   };
@@ -249,36 +285,30 @@ const Produtos = () => {
       alert('As dimensões são obrigatórias.');
       return;
     }
-    // Imagem obrigatória só ao criar
-    if (!editingProduct && !formData.imageUrl) {
-      alert('A imagem do produto é obrigatória ao criar.');
-      return;
-    }
     // Validar campos obrigatórios
     if (
       !formData.title ||
+      (isAdmin && !selectedVendor) ||
       (!isAdmin && !artistData.artistHandle) ||
       !formData.price ||
       !formData.description ||
-      (isAdmin && !formData.imageUrl)
+      (!editingProduct && !uploadedImageUrl)
     ) {
       alert("Por favor, preencha todos os campos obrigatórios.");
       return;
     }
     try {
-      // Garante que imageUrl está correto
-      const imageUrlFinal = formData.imageUrl;
       const productData = {
         title: formData.title,
-        artistHandle: isAdmin ? formData.artistHandle : artistData.artistHandle,
+        artistHandle: isAdmin ? artistData.artistHandle : artistData.artistHandle,
         price: formData.price,
-        imageUrl: imageUrlFinal,
+        imageUrl: editingProduct ? (uploadedImageUrl || editingProduct.imageUrl) : uploadedImageUrl,
         description: formData.description,
         quantity: parseInt(formData.quantity) || 0,
         dimensions: formData.dimensions,
         framed: formData.framed,
-        artistUsername: isAdmin ? formData.artistUsername : artistData.artistUsername,
-        artistProfileImage: isAdmin ? formData.artistProfileImage : artistData.artistProfileImage,
+        artistUsername: isAdmin ? artistData.artistUsername : artistData.artistUsername,
+        artistProfileImage: isAdmin ? artistData.artistProfileImage : artistData.artistProfileImage,
         availableSizes: formData.availableSizes
       };
       if (editingProduct) {
@@ -427,15 +457,35 @@ const Produtos = () => {
                 required
               />
               {isAdmin && (
-                <input
-                  type="text"
-                  name="artistHandle"
-                  placeholder="Handle do Artista"
-                  value={formData.artistHandle}
-                  onChange={handleChange}
-                  className="border p-2 rounded"
-                  required
-                />
+                <div className="flex flex-col gap-2">
+                  <label className="font-medium">Selecionar Vendedor</label>
+                  <select
+                    value={selectedVendor?.id || ''}
+                    onChange={(e) => {
+                      const vendorId = parseInt(e.target.value);
+                      const vendor = vendors?.find(v => v.id === vendorId) || null;
+                      setSelectedVendor(vendor);
+                    }}
+                    className="border p-2 rounded"
+                    required
+                  >
+                    <option value="">Selecione um vendedor</option>
+                    {vendors?.map((vendor) => (
+                      <option key={vendor.id} value={vendor.id}>
+                        {vendor.firstName} {vendor.lastName} ({vendor.email})
+                      </option>
+                    ))}
+                  </select>
+                  {selectedVendor && (
+                    <div className="text-sm text-gray-600 p-2 bg-gray-50 rounded">
+                      <p><strong>Handle:</strong> {artistData.artistHandle}</p>
+                      <p><strong>Nome:</strong> {artistData.artistUsername}</p>
+                      {artistData.artistProfileImage && (
+                        <p><strong>Foto:</strong> Disponível</p>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
               <input
                 type="text"
@@ -446,49 +496,21 @@ const Produtos = () => {
                 className="border p-2 rounded"
                 required
               />
-              {isAdmin ? (
-                <>
-                  <input
-                    type="url"
-                    name="imageUrl"
-                    placeholder="URL da Imagem"
-                    value={formData.imageUrl}
-                    onChange={handleChange}
-                    className="border p-2 rounded"
+              <div className="flex flex-col gap-2">
+                <label className="font-medium">Imagem do Produto</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleProductImageChange}
+                />
+                {productImagePreview && (
+                  <img
+                    src={productImagePreview}
+                    alt="Preview da imagem do produto"
+                    className="w-full h-40 object-cover rounded border"
                   />
-                  <div className="flex flex-col gap-2">
-                    <label className="font-medium">Ou envie uma imagem:</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleProductImageChange}
-                    />
-                    {productImagePreview && (
-                      <img
-                        src={productImagePreview}
-                        alt="Preview da imagem do produto"
-                        className="w-full h-40 object-cover rounded border"
-                      />
-                    )}
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  <label className="font-medium">Imagem do Produto</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleProductImageChange}
-                  />
-                  {productImagePreview && (
-                    <img
-                      src={productImagePreview}
-                      alt="Preview da imagem do produto"
-                      className="w-full h-40 object-cover rounded border"
-                    />
-                  )}
-                </div>
-              )}
+                )}
+              </div>
               <textarea
                 name="description"
                 placeholder="Descrição"
@@ -526,26 +548,6 @@ const Produtos = () => {
                 />
                 <label>Emoldurado</label>
               </div>
-              {isAdmin && (
-                <input
-                  type="text"
-                  name="artistUsername"
-                  placeholder="Nome do Artista"
-                  value={formData.artistUsername}
-                  onChange={handleChange}
-                  className="border p-2 rounded"
-                />
-              )}
-              {isAdmin && (
-                <input
-                  type="url"
-                  name="artistProfileImage"
-                  placeholder="URL da Foto do Artista"
-                  value={formData.artistProfileImage}
-                  onChange={handleChange}
-                  className="border p-2 rounded"
-                />
-              )}
 
               <div className="flex justify-end gap-4 mt-4">
                 <button

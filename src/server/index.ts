@@ -504,6 +504,22 @@ app.get('/api/users', (_req: Request, res: Response) => {
   }
 });
 
+// Rota para buscar apenas os vendedores (admin users)
+app.get('/api/vendors', (_req: Request, res: Response) => {
+  try {
+    const vendors = db.prepare(`
+      SELECT id, email, firstName, lastName, telefone, endereco, fotoUrl, created_at 
+      FROM users 
+      WHERE email IN ('admin', 'ceulazur', 'artemisia')
+      ORDER BY firstName
+    `).all();
+    res.json(vendors);
+  } catch (error) {
+    console.error('Erro ao buscar vendedores:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
 // Buscar dados do usuário por ID
 app.get('/api/users/:id', (req: Request, res: Response) => {
   try {
