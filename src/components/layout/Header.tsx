@@ -10,6 +10,7 @@ import {
 } from '../ui/dropdown-menu';
 import { Sheet, SheetTrigger, SheetContent } from '../ui/sheet';
 import { Product } from '../../hooks/useProducts';
+import { useVendors } from '../../hooks/useVendors';
 
 type Artist = {
   artistHandle: string;
@@ -32,6 +33,7 @@ export const Header: React.FC = () => {
   const [selectedArtist, setSelectedArtist] = React.useState<Artist | null>(null);
   const searchRef = React.useRef<HTMLDivElement>(null);
   const serverUrl = "http://localhost:3000";
+  const { data: vendors } = useVendors();
 
   const handlePedidos = () => {
     navigateAndScroll('/pedidos');
@@ -59,16 +61,17 @@ export const Header: React.FC = () => {
   }, [sidebarOpen, searchOpen]);
 
   // Buscar artistas ao abrir filtro
-  const fetchArtists = async () => {
-    try {
-      const res = await fetch(`${serverUrl}/api/artists`);
-      if (res.ok) {
-        setArtists(await res.json());
-      }
-    } catch (e) {
-      console.error('Erro ao buscar artistas', e);
+  React.useEffect(() => {
+    if (vendors) {
+      // Mapear vendors para Artist
+      const uniqueArtists = vendors.map(vendor => ({
+        artistHandle: vendor.email === 'ceulazur' ? '@ceulazur' : vendor.email === 'artemisia' ? '@artemisia' : '@admin',
+        artistUsername: vendor.firstName + (vendor.lastName ? ' ' + vendor.lastName : ''),
+        artistProfileImage: vendor.fotoUrl || '/placeholder.svg',
+      }));
+      setArtists(uniqueArtists);
     }
-  };
+  }, [vendors]);
 
   // Autosuggest com debounce
   React.useEffect(() => {
@@ -269,7 +272,14 @@ export const Header: React.FC = () => {
                       className="flex items-center gap-2 text-white text-xl mb-2 px-2 py-1 bg-black/30 rounded hover:bg-black/50"
                       onClick={() => {
                         setFilterMenuOpen((v) => !v);
-                        if (!artists.length) fetchArtists();
+                        if (!artists.length && vendors && vendors.length) {
+                          const uniqueArtists = vendors.map(vendor => ({
+                            artistHandle: vendor.email === 'ceulazur' ? '@ceulazur' : vendor.email === 'artemisia' ? '@artemisia' : '@admin',
+                            artistUsername: vendor.firstName + (vendor.lastName ? ' ' + vendor.lastName : ''),
+                            artistProfileImage: vendor.fotoUrl || '/placeholder.svg',
+                          }));
+                          setArtists(uniqueArtists);
+                        }
                       }}
                     >
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>

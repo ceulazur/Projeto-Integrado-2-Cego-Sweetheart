@@ -245,6 +245,10 @@ const Produtos = () => {
     if (!isAdmin && usuario) {
       items = items.filter(p => p.artistHandle === artistData.artistHandle);
     }
+    // Se for admin e filtro de vendedor estiver selecionado, filtra pelo artistHandle
+    if (isAdmin && filters.vendor) {
+      items = items.filter(p => p.artistHandle === filters.vendor);
+    }
     // Preço
     items = items.filter(p => {
       const price = parseFloat(p.price.replace('R$', '').replace(',', '.'));

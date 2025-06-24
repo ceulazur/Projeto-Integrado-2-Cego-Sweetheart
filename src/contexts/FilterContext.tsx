@@ -1,5 +1,4 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
-import type { FilterState } from './FilterContext'; // Importar o tipo para si mesmo para exportação
 
 // Define o formato do estado dos filtros
 export interface FilterState {
@@ -7,6 +6,7 @@ export interface FilterState {
   inStockOnly: boolean;
   frameStatus: 'all' | 'framed' | 'unframed';
   sortBy: 'default' | 'price-asc' | 'price-desc' | 'title-asc' | 'title-desc';
+  vendor?: string; // Novo campo para filtro de vendedor
 }
 
 // Define o tipo do contexto
@@ -23,6 +23,7 @@ const initialFilters: FilterState = {
   inStockOnly: false,
   frameStatus: 'all',
   sortBy: 'default',
+  vendor: '',
 };
 
 // Cria o contexto

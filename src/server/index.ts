@@ -279,15 +279,26 @@ app.get('/api/products', (_req: Request, res: Response) => {
 app.get('/api/products/search', (req: Request, res: Response) => {
   try {
     const query = req.query.q;
+    const artist = req.query.artist;
+    
     if (typeof query !== 'string' || query.trim() === '') {
       return res.json([]);
     }
 
     const searchQuery = `%${query}%`;
+    let sqlQuery = 'SELECT * FROM products WHERE title LIKE ?';
+    const params = [searchQuery];
+
+    // Se o parâmetro artist foi fornecido, adicionar filtro por artistHandle
+    if (typeof artist === 'string' && artist.trim() !== '') {
+      sqlQuery += ' AND artistHandle = ?';
+      params.push(artist);
+    }
+
+    sqlQuery += ' LIMIT 10';
+
     // Retorna todos os campos do produto para popular o formulário de edição
-    const products = db.prepare(
-      'SELECT * FROM products WHERE title LIKE ? LIMIT 10'
-    ).all(searchQuery) as Product[];
+    const products = db.prepare(sqlQuery).all(...params) as Product[];
 
     const transformedProducts = products.map(product => ({
       ...product,

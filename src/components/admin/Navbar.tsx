@@ -11,6 +11,7 @@ import { UserContext } from "../../contexts/UserContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { Product } from "../../hooks/useProducts";
 import { useFilters, FilterState } from "../../contexts/FilterContext";
+import { useVendors } from '../../hooks/useVendors';
 
 // Usar o tipo Product importado, que já é completo
 type SearchResult = Product;
@@ -27,6 +28,7 @@ const Navbar = () => {
   const { filters, setFilters, resetFilters, isDefault } = useFilters();
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
+  const { data: vendors } = useVendors();
 
   const flexBetween = "flex items-center justify-between";
   const serverUrl = "http://localhost:3000";
@@ -77,6 +79,9 @@ const Navbar = () => {
     localStorage.removeItem("admin-user"); 
     navigate("/admin/login");
   };
+
+  // Identificação de admin
+  const isAdmin = usuario && (usuario.nome === "admin" || usuario.email === "admin");
 
   return (
     <nav>
@@ -239,6 +244,28 @@ const Navbar = () => {
           </div>
           
           <div className="flex flex-col gap-5">
+            {/* Filtro de vendedor (apenas admin) */}
+            {isAdmin && vendors && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Vendedor</label>
+                <select
+                  value={filters.vendor || ''}
+                  onChange={e => setFilters(f => ({ ...f, vendor: e.target.value }))}
+                  className="w-full border border-gray-300 rounded p-2 text-sm"
+                >
+                  <option value="">Todos</option>
+                  {vendors.map(vendor => (
+                    <option key={vendor.id} value={
+                      vendor.email === 'ceulazur' ? '@ceulazur' :
+                      vendor.email === 'artemisia' ? '@artemisia' :
+                      vendor.email === 'admin' ? '@admin' : vendor.email
+                    }>
+                      {vendor.firstName} {vendor.lastName} ({vendor.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             {/* Ordenar por */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Ordenar por</label>

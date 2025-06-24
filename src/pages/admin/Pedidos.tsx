@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { UserContext } from "../../contexts/UserContext";
 import type { Usuario } from "../../contexts/UserContext";
+import { useFilters } from '../../contexts/FilterContext';
 
 type PedidoStatus = "Cancelado" | "Enviado" | "Em aberto" | "Concluído";
 
@@ -26,6 +27,7 @@ const statusColors: Record<PedidoStatus, string> = {
 
 const Pedidos = () => {
   const { usuario } = useContext(UserContext);
+  const { filters } = useFilters();
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [modalAberto, setModalAberto] = useState(false);
   const [pedidoSelecionado, setPedidoSelecionado] = useState<Pedido | null>(null);
@@ -53,10 +55,11 @@ const Pedidos = () => {
     const fetchPedidos = async () => {
       try {
         let url = 'http://localhost:3000/api/pedidos';
-        if (!isAdmin && vendorHandle) {
+        if (isAdmin && filters.vendor) {
+          url += `?vendor=${encodeURIComponent(filters.vendor)}`;
+        } else if (!isAdmin && vendorHandle) {
           url += `?vendor=${encodeURIComponent(vendorHandle)}`;
         }
-        
         const response = await fetch(url);
         const data = await response.json();
         setPedidos(data);
@@ -65,9 +68,8 @@ const Pedidos = () => {
         setPedidos([]);
       }
     };
-
     fetchPedidos();
-  }, [isAdmin, vendorHandle]);
+  }, [isAdmin, vendorHandle, filters.vendor]);
 
   const abrirModal = (pedido: Pedido) => {
     setPedidoSelecionado(pedido);
@@ -89,13 +91,13 @@ const Pedidos = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: statusSelecionado, codigoRastreio }),
       });
-      
       // Recarrega os pedidos do backend com o filtro correto
       let url = 'http://localhost:3000/api/pedidos';
-      if (!isAdmin && vendorHandle) {
+      if (isAdmin && filters.vendor) {
+        url += `?vendor=${encodeURIComponent(filters.vendor)}`;
+      } else if (!isAdmin && vendorHandle) {
         url += `?vendor=${encodeURIComponent(vendorHandle)}`;
       }
-      
       const res = await fetch(url);
       setPedidos(await res.json());
       alert('Pedido atualizado com sucesso!');
