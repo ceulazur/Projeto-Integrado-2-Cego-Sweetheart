@@ -627,7 +627,28 @@ app.post('/api/pedidos', express.json(), (req: Request, res: Response) => {
 // Rota para listar todos os pedidos
 app.get('/api/pedidos', (req: Request, res: Response) => {
   try {
-    const pedidos = db.prepare('SELECT * FROM pedidos ORDER BY id DESC').all();
+    const { vendor } = req.query;
+    
+    let pedidos;
+    if (vendor && vendor !== 'admin') {
+      // Se for um vendedor específico, filtra apenas os pedidos dos seus produtos
+      pedidos = db.prepare(`
+        SELECT p.*, pr.artistHandle 
+        FROM pedidos p 
+        JOIN products pr ON p.produtoId = pr.id 
+        WHERE pr.artistHandle = ? 
+        ORDER BY p.id DESC
+      `).all(vendor);
+    } else {
+      // Se for admin ou não especificado, retorna todos os pedidos
+      pedidos = db.prepare(`
+        SELECT p.*, pr.artistHandle 
+        FROM pedidos p 
+        JOIN products pr ON p.produtoId = pr.id 
+        ORDER BY p.id DESC
+      `).all();
+    }
+    
     res.json(pedidos);
   } catch (error) {
     console.error('Erro ao buscar pedidos:', error);

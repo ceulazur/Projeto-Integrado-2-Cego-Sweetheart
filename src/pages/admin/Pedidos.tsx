@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { UserContext } from "../../contexts/UserContext";
+import type { Usuario } from "../../contexts/UserContext";
 
 type PedidoStatus = "Cancelado" | "Enviado" | "Em aberto" | "Concluído";
 
@@ -11,41 +13,9 @@ type Pedido = {
   produtoId: number;
   produtoNome: string;
   formaPagamento: string;
-  codigoRastreio?: string; // opcional inicialmente
+  codigoRastreio?: string;
+  artistHandle?: string; // Adicionado para mostrar o vendedor
 };
-
-const pedidosData: Pedido[] = [
-  {
-    id: 101,
-    clienteNome: "Jhordanna Gonçalves",
-    clienteId: "CLT-001",
-    status: "Enviado",
-    data: "2025-06-20",
-    produtoId: 1,
-    produtoNome: "NotionMe",
-    formaPagamento: "Cartão de Crédito",
-  },
-  {
-    id: 102,
-    clienteNome: "Carlos Silva",
-    clienteId: "CLT-002",
-    status: "Cancelado",
-    data: "2025-06-18",
-    produtoId: 2,
-    produtoNome: "Boné Cego Sweetheart",
-    formaPagamento: "Boleto Bancário",
-  },
-  {
-    id: 103,
-    clienteNome: "Ana Paula",
-    clienteId: "CLT-003",
-    status: "Em aberto",
-    data: "2025-06-19",
-    produtoId: 3,
-    produtoNome: "NotionMe",
-    formaPagamento: "Pix",
-  },
-];
 
 const statusColors: Record<PedidoStatus, string> = {
   "Cancelado": "text-red-600 font-semibold",
@@ -55,18 +25,49 @@ const statusColors: Record<PedidoStatus, string> = {
 };
 
 const Pedidos = () => {
+  const { usuario } = useContext(UserContext);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [modalAberto, setModalAberto] = useState(false);
   const [pedidoSelecionado, setPedidoSelecionado] = useState<Pedido | null>(null);
   const [codigoRastreio, setCodigoRastreio] = useState("");
   const [statusSelecionado, setStatusSelecionado] = useState<PedidoStatus>("Em aberto");
 
+  // Identificação de admin e vendedor
+  const isAdmin = usuario && (usuario.nome === "admin" || usuario.email === "admin");
+  
+  // Função para obter o artistHandle do vendedor
+  const getVendorHandle = (usuario: Usuario | null) => {
+    if (!usuario) return null;
+    if (usuario.nome === 'Ceulazur' || usuario.email === 'ceulazur') {
+      return '@ceulazur';
+    }
+    if (usuario.nome === 'Artemisia' || usuario.email === 'artemisia') {
+      return '@artemisia';
+    }
+    return null;
+  };
+
+  const vendorHandle = getVendorHandle(usuario);
+
   useEffect(() => {
-    fetch("http://localhost:3000/api/pedidos")
-      .then(res => res.json())
-      .then(data => setPedidos(data))
-      .catch(() => setPedidos([]));
-  }, []);
+    const fetchPedidos = async () => {
+      try {
+        let url = 'http://localhost:3000/api/pedidos';
+        if (!isAdmin && vendorHandle) {
+          url += `?vendor=${encodeURIComponent(vendorHandle)}`;
+        }
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        setPedidos(data);
+      } catch (error) {
+        console.error('Erro ao buscar pedidos:', error);
+        setPedidos([]);
+      }
+    };
+
+    fetchPedidos();
+  }, [isAdmin, vendorHandle]);
 
   const abrirModal = (pedido: Pedido) => {
     setPedidoSelecionado(pedido);
@@ -88,8 +89,14 @@ const Pedidos = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: statusSelecionado, codigoRastreio }),
       });
-      // Recarrega os pedidos do backend
-      const res = await fetch('http://localhost:3000/api/pedidos');
+      
+      // Recarrega os pedidos do backend com o filtro correto
+      let url = 'http://localhost:3000/api/pedidos';
+      if (!isAdmin && vendorHandle) {
+        url += `?vendor=${encodeURIComponent(vendorHandle)}`;
+      }
+      
+      const res = await fetch(url);
       setPedidos(await res.json());
       alert('Pedido atualizado com sucesso!');
       fecharModal();
@@ -101,34 +108,53 @@ const Pedidos = () => {
   return (
     <div className="p-8 pt-24">
       <h1 className="text-2xl font-bold mb-6">Pedidos</h1>
-      <table className="w-full border-collapse border border-gray-300">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border border-gray-300 p-2 text-left">ID Pedido</th>
-            <th className="border border-gray-300 p-2 text-left">Cliente</th>
-            <th className="border border-gray-300 p-2 text-left">ID Cliente</th>
-            <th className="border border-gray-300 p-2 text-left">Status</th>
-            <th className="border border-gray-300 p-2 text-left">Data</th>
-          </tr>
-        </thead>
-        <tbody>
-          {pedidos.map((pedido) => (
-            <tr
-              key={pedido.id}
-              className="hover:bg-gray-50 cursor-pointer"
-              onClick={() => abrirModal(pedido)}
-            >
-              <td className="border border-gray-300 p-2">{pedido.id}</td>
-              <td className="border border-gray-300 p-2">{pedido.clienteNome}</td>
-              <td className="border border-gray-300 p-2">{pedido.clienteId}</td>
-              <td className={`border border-gray-300 p-2 ${statusColors[pedido.status]}`}>
-                {pedido.status}
-              </td>
-              <td className="border border-gray-300 p-2">{pedido.data}</td>
+      
+      {pedidos.length === 0 ? (
+        <div className="text-center py-12">
+          <h3 className="text-lg font-semibold">Nenhum pedido encontrado</h3>
+          <p className="text-gray-500">
+            {isAdmin 
+              ? "Não há pedidos registrados no sistema." 
+              : "Você ainda não recebeu nenhum pedido dos seus produtos."
+            }
+          </p>
+        </div>
+      ) : (
+        <table className="w-full border-collapse border border-gray-300">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border border-gray-300 p-2 text-left">ID Pedido</th>
+              <th className="border border-gray-300 p-2 text-left">Cliente</th>
+              <th className="border border-gray-300 p-2 text-left">ID Cliente</th>
+              {isAdmin && (
+                <th className="border border-gray-300 p-2 text-left">Vendedor</th>
+              )}
+              <th className="border border-gray-300 p-2 text-left">Status</th>
+              <th className="border border-gray-300 p-2 text-left">Data</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {pedidos.map((pedido) => (
+              <tr
+                key={pedido.id}
+                className="hover:bg-gray-50 cursor-pointer"
+                onClick={() => abrirModal(pedido)}
+              >
+                <td className="border border-gray-300 p-2">{pedido.id}</td>
+                <td className="border border-gray-300 p-2">{pedido.clienteNome}</td>
+                <td className="border border-gray-300 p-2">{pedido.clienteId}</td>
+                {isAdmin && (
+                  <td className="border border-gray-300 p-2">{pedido.artistHandle}</td>
+                )}
+                <td className={`border border-gray-300 p-2 ${statusColors[pedido.status]}`}>
+                  {pedido.status}
+                </td>
+                <td className="border border-gray-300 p-2">{pedido.data}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
 
       {/* Modal */}
       {modalAberto && pedidoSelecionado && (
