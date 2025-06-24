@@ -521,7 +521,7 @@ app.get('/api/vendors', (_req: Request, res: Response) => {
     const vendors = db.prepare(`
       SELECT id, email, firstName, lastName, telefone, endereco, fotoUrl, created_at 
       FROM users 
-      WHERE email IN ('admin', 'ceulazur', 'artemisia')
+      WHERE email IN ('ceulazur', 'artemisia')
       ORDER BY firstName
     `).all();
     res.json(vendors);
