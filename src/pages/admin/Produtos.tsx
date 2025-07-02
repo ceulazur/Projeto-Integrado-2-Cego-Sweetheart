@@ -41,7 +41,8 @@ const Produtos = () => {
   const serverUrl = "http://localhost:3000";
 
   // Identificação de admin
-  const isAdmin = usuario && (usuario.nome === "admin" || usuario.email === "admin");
+  const isAdmin = usuario && (usuario.nome === "admin" || usuario.email === "admin" || usuario.email === "admin@admin.com");
+  const isRootAdmin = usuario && (usuario.email === "admin" || usuario.email === "admin@admin.com");
   
   // Função para obter dados do artista baseado no vendedor selecionado
   const getArtistDataFromVendor = (vendor: Vendor | null) => {
@@ -301,6 +302,10 @@ const Produtos = () => {
       alert("Por favor, preencha todos os campos obrigatórios.");
       return;
     }
+    if (isRootAdmin && !editingProduct) {
+      alert("O admin root não pode adicionar novos produtos.");
+      return;
+    }
     try {
       const productData = {
         title: formData.title,
@@ -362,13 +367,15 @@ const Produtos = () => {
       {/* Cabeçalho com título e botão adicionar */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Produtos</h1>
-        <button
-          onClick={abrirModal}
-          className="text-green-600 hover:text-green-800"
-          aria-label="Adicionar Produto"
-        >
-          <PlusCircleIcon className="h-8 w-8" />
-        </button>
+        {!isRootAdmin && (
+          <button
+            onClick={abrirModal}
+            className="text-green-600 hover:text-green-800"
+            aria-label="Adicionar Produto"
+          >
+            <PlusCircleIcon className="h-8 w-8" />
+          </button>
+        )}
       </div>
 
       {/* Grid de produtos */}
@@ -414,14 +421,14 @@ const Produtos = () => {
                       Editar
                     </button>
                   )}
-                  {(isAdmin || produto.artistHandle === artistData.artistHandle) && (
+                  {(isRootAdmin && produto.artistHandle === "@admin") || (!isRootAdmin && (!isAdmin || produto.artistHandle !== artistData.artistHandle)) ? (
                     <button
                       onClick={() => excluirProduto(produto.id)}
                       className="bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700"
                     >
                       Excluir
                     </button>
-                  )}
+                  ) : null}
                 </div>
               </div>
             );
