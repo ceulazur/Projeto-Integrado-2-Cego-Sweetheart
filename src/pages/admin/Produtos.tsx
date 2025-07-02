@@ -44,6 +44,9 @@ const Produtos = () => {
   const isAdmin = usuario && (usuario.nome === "admin" || usuario.email === "admin" || usuario.email === "admin@admin.com");
   const isRootAdmin = usuario && (usuario.email === "admin" || usuario.email === "admin@admin.com");
   
+  // Novo estado para controlar se o campo de preço está em foco
+  const [isPriceFocused, setIsPriceFocused] = useState(false);
+  
   // Função para obter dados do artista baseado no vendedor selecionado
   const getArtistDataFromVendor = (vendor: Vendor | null) => {
     if (!vendor) return { artistHandle: '', artistUsername: '', artistProfileImage: '' };
@@ -166,13 +169,46 @@ const Produtos = () => {
     setEditingProduct(null);
   };
 
-  // Função utilitária para formatar preço
-  function formatarPreco(valor: string) {
-    const num = valor.replace(/[^\d,.]/g, '').replace(',', '.');
+  // Função de formatação amigável para digitação
+  function formatarPrecoMascara(valor: string) {
+    // Permite apenas números e vírgula
+    return valor.replace(/[^\d,]/g, '');
+  }
+  // Função de formatação final para moeda
+  function formatarPrecoFinal(valor: string) {
+    const num = valor.replace(/[^\d,]/g, '').replace(',', '.');
     const float = parseFloat(num);
     if (isNaN(float)) return '';
     return `R$ ${float.toFixed(2).replace('.', ',')}`;
   }
+
+  // Atualiza campos do formulário com máscara
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value, type } = e.target;
+    let newValue = value;
+    if (name === 'price') {
+      newValue = isPriceFocused ? formatarPrecoMascara(value) : formatarPrecoFinal(value);
+    }
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : newValue,
+    }));
+  };
+
+  // Ao sair do campo de preço, aplica a máscara final
+  const handlePriceBlur = () => {
+    setIsPriceFocused(false);
+    setFormData((prev) => ({
+      ...prev,
+      price: formatarPrecoFinal(prev.price),
+    }));
+  };
+  // Ao focar, permite digitação livre
+  const handlePriceFocus = () => {
+    setIsPriceFocused(true);
+  };
 
   // Função utilitária para formatar dimensões
   function formatarDimensoes(valor: string) {
@@ -183,21 +219,6 @@ const Produtos = () => {
       .replace(/(\d+)x(\d+)/g, (m, a, b) => `${parseInt(a)}x${parseInt(b)}`)
       .replace(/x+$/, '');
   }
-
-  // Atualiza campos do formulário com máscara
-  const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value, type } = e.target;
-    let newValue = value;
-    if (name === 'price') {
-      newValue = formatarPreco(value);
-    }
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : newValue,
-    }));
-  };
 
   // Formata dimensões ao sair do campo
   const handleDimensionsBlur = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -504,6 +525,8 @@ const Produtos = () => {
                 placeholder="Preço"
                 value={formData.price}
                 onChange={handleChange}
+                onFocus={handlePriceFocus}
+                onBlur={handlePriceBlur}
                 className="border p-2 rounded"
                 required
               />
