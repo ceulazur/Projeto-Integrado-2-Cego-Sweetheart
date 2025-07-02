@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useProducts } from "../../hooks/useProducts";
 import { useEffect, useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
 
 type PedidoStatus = "Cancelado" | "Enviado" | "Em aberto" | "Concluído";
 type Pedido = {
@@ -19,6 +20,7 @@ const Home = () => {
   const { data: produtos, isLoading } = useProducts();
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loadingPedidos, setLoadingPedidos] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     fetch("http://localhost:3000/api/pedidos")
@@ -113,7 +115,7 @@ const Home = () => {
       </div>
 
       {/* Lista dos produtos mais recentes */}
-      {produtos && produtos.length > 0 && (
+      {user && (user.email === "admin" || user.email === "admin@admin.com") && produtos && produtos.length > 0 && (
         <div className="mt-10">
           <h2 className="text-2xl font-bold mb-6">Produtos Mais Recentes</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
