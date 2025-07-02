@@ -11,6 +11,7 @@ import {
 import { Sheet, SheetTrigger, SheetContent } from '../ui/sheet';
 import { Product } from '../../hooks/useProducts';
 import { useVendors } from '../../hooks/useVendors';
+import { useProducts } from '../../hooks/useProducts';
 
 type Artist = {
   artistHandle: string;
@@ -34,6 +35,8 @@ export const Header: React.FC = () => {
   const searchRef = React.useRef<HTMLDivElement>(null);
   const serverUrl = "http://localhost:3000";
   const { data: vendors } = useVendors();
+  const { data: allProducts } = useProducts();
+  const [artistProducts, setArtistProducts] = React.useState<Product[]>([]);
 
   const handlePedidos = () => {
     navigateAndScroll('/pedidos');
@@ -73,35 +76,39 @@ export const Header: React.FC = () => {
     }
   }, [vendors]);
 
+  // Atualiza produtos do artista ao selecionar
+  React.useEffect(() => {
+    if (selectedArtist && allProducts) {
+      const filtered = allProducts.filter(p => p.artistHandle === selectedArtist.artistHandle);
+      setArtistProducts(filtered);
+    } else {
+      setArtistProducts([]);
+    }
+  }, [selectedArtist, allProducts]);
+
   // Autosuggest com debounce
   React.useEffect(() => {
-    if (searchTerm.trim() === "") {
+    if (!selectedArtist) {
       setSearchResults([]);
       setIsDropdownVisible(false);
       return;
     }
-    const timer = setTimeout(async () => {
-      let url = `${serverUrl}/api/products/search?q=${encodeURIComponent(searchTerm)}`;
-      if (selectedArtist?.artistHandle) {
-        url += `&artist=${encodeURIComponent(selectedArtist.artistHandle)}`;
-      }
-      try {
-        const res = await fetch(url);
-        if (res.ok) {
-          const data = await res.json();
-          setSearchResults(data);
-          setIsDropdownVisible(data.length > 0);
-        } else {
-          setSearchResults([]);
-          setIsDropdownVisible(false);
-        }
-      } catch {
-        setSearchResults([]);
-        setIsDropdownVisible(false);
-      }
-    }, 300);
+    if (searchTerm.trim() === "") {
+      // Se há artista selecionado e campo focado, mostra todos produtos do artista
+      setSearchResults(artistProducts);
+      setIsDropdownVisible(artistProducts.length > 0);
+      return;
+    }
+    const timer = setTimeout(() => {
+      // Filtra localmente os produtos do artista pelo termo
+      const filtered = artistProducts.filter(p =>
+        p.title.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setSearchResults(filtered);
+      setIsDropdownVisible(filtered.length > 0);
+    }, 200);
     return () => clearTimeout(timer);
-  }, [searchTerm, selectedArtist]);
+  }, [searchTerm, selectedArtist, artistProducts]);
 
   // Fechar dropdown ao clicar fora
   React.useEffect(() => {
@@ -115,6 +122,21 @@ export const Header: React.FC = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Fechar autosuggest ao abrir menu de filtro
+  React.useEffect(() => {
+    if (filterMenuOpen || artistMenuOpen) {
+      setIsDropdownVisible(false);
+    }
+  }, [filterMenuOpen, artistMenuOpen]);
+
+  // Fechar menu de filtro ao abrir autosuggest
+  React.useEffect(() => {
+    if (isDropdownVisible) {
+      setFilterMenuOpen(false);
+      setArtistMenuOpen(false);
+    }
+  }, [isDropdownVisible]);
 
   return (
     <header className="w-full bg-white">
@@ -339,7 +361,14 @@ export const Header: React.FC = () => {
                         setSearchTerm(e.target.value);
                         setIsDropdownVisible(true);
                       }}
-                      onFocus={() => setIsDropdownVisible(searchResults.length > 0)}
+                      onFocus={() => {
+                        if (selectedArtist && artistProducts.length > 0) {
+                          setSearchResults(artistProducts);
+                          setIsDropdownVisible(true);
+                        } else {
+                          setIsDropdownVisible(false);
+                        }
+                      }}
                     />
                     {/* Autosuggest */}
                     {isDropdownVisible && (
