@@ -16,6 +16,8 @@ const Perfil = () => {
   });
   const [fotoPreview, setFotoPreview] = useState<string | undefined>("");
   const serverUrl = "http://localhost:3000";
+  const [telefoneErro, setTelefoneErro] = useState<string>("");
+  const [isTelefoneFocused, setIsTelefoneFocused] = useState(false);
 
   useEffect(() => {
     if (usuario) {
@@ -61,8 +63,56 @@ const Perfil = () => {
     }
   };
 
+  function formatarTelefoneMascara(valor: string) {
+    // Permite apenas números
+    return valor.replace(/\D/g, '');
+  }
+
+  function formatarTelefoneFinal(valor: string) {
+    const numeros = valor.replace(/\D/g, '');
+    if (numeros.length === 11) {
+      // Celular: (99) 99999-9999
+      return numeros.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    } else if (numeros.length === 10) {
+      // Fixo: (99) 9999-9999
+      return numeros.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+    }
+    return valor;
+  }
+
+  const handleTelefoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let newValue = e.target.value;
+    newValue = isTelefoneFocused ? formatarTelefoneMascara(newValue) : formatarTelefoneFinal(newValue);
+    setFormData((prev) => ({ ...prev, telefone: newValue }));
+  };
+
+  const handleTelefoneBlur = () => {
+    setIsTelefoneFocused(false);
+    setFormData((prev) => ({ ...prev, telefone: formatarTelefoneFinal(prev.telefone) }));
+  };
+
+  const handleTelefoneFocus = () => {
+    setIsTelefoneFocused(true);
+  };
+
+  function validarTelefone(telefone: string) {
+    // Aceita formatos (11) 91234-5678, 11912345678, 1123456789
+    const regex = /^(\(?\d{2}\)?\s?)?(9?\d{4})-?\d{4}$/;
+    return regex.test(telefone.replace(/\D/g, ""));
+  }
+
   const salvarEdicao = async () => {
     if (!usuario) return;
+
+    // Validação do telefone
+    if (formData.telefone && !validarTelefone(formData.telefone)) {
+      setTelefoneErro("Telefone inválido. Use o formato (11) 91234-5678 ou 11912345678.");
+      const telInput = document.querySelector('input[name="telefone"]') as HTMLInputElement | null;
+      telInput?.focus();
+      return;
+    } else {
+      setTelefoneErro("");
+    }
 
     const [firstName, ...lastNameParts] = formData.nome.split(' ');
     const lastName = lastNameParts.join(' ');
@@ -149,6 +199,12 @@ const Perfil = () => {
               className="mb-4"
             />
 
+            {telefoneErro && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-2 text-sm text-center">
+                {telefoneErro}
+              </div>
+            )}
+
             <div className="flex flex-col gap-4">
               <input
                 type="text"
@@ -169,7 +225,9 @@ const Perfil = () => {
                 type="text"
                 name="telefone"
                 value={formData.telefone || ""}
-                onChange={handleChange}
+                onChange={handleTelefoneChange}
+                onFocus={handleTelefoneFocus}
+                onBlur={handleTelefoneBlur}
                 placeholder="Telefone"
                 className="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -193,9 +251,9 @@ const Perfil = () => {
               <button
                 onClick={salvarEdicao}
                 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                disabled={updateUser.isLoading}
+                disabled={updateUser.isPending}
               >
-                {updateUser.isLoading ? "Salvando..." : "Salvar"}
+                {updateUser.isPending ? "Salvando..." : "Salvar"}
               </button>
             </div>
           </div>
