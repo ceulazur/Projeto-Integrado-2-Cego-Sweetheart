@@ -515,16 +515,21 @@ app.get('/api/users', (_req: Request, res: Response) => {
   }
 });
 
-// Rota para buscar apenas os vendedores (admin users)
+// Rota para buscar todos os vendedores (exceto admin root)
 app.get('/api/vendors', (_req: Request, res: Response) => {
   try {
     const vendors = db.prepare(`
       SELECT id, email, firstName, lastName, telefone, endereco, fotoUrl, created_at 
       FROM users 
-      WHERE email IN ('ceulazur', 'artemisia')
+      WHERE email != 'admin' AND email != 'admin@admin.com'
       ORDER BY firstName
     `).all();
-    res.json(vendors);
+    // Adiciona campo handle e mantém compatibilidade
+    const result = vendors.map((v: any) => ({
+      ...v,
+      handle: typeof v.handle === 'string' ? v.handle : `@${v.firstName ? v.firstName.toLowerCase() : ''}`
+    }));
+    res.json(result);
   } catch (error) {
     console.error('Erro ao buscar vendedores:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
@@ -681,6 +686,45 @@ app.put('/api/pedidos/:id', express.json(), (req: Request, res: Response) => {
     }
   } catch (error) {
     console.error('Erro ao atualizar pedido:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Endpoint para criar novo vendedor
+app.post('/api/vendors', async (req: Request, res: Response) => {
+  try {
+    const { email, firstName, lastName, telefone, endereco, fotoUrl, handle, password } = req.body;
+    if (!email || !firstName || !lastName || !handle) {
+      return res.status(400).json({ error: 'Campos obrigatórios faltando' });
+    }
+    // Verifica se já existe
+    const exists = db.prepare('SELECT COUNT(*) as count FROM users WHERE email = ?').get(email) as { count: number };
+    if (exists.count > 0) {
+      return res.status(409).json({ error: 'Já existe um usuário com este email' });
+    }
+    // Usa senha enviada ou gera temporária
+    const senhaFinal = password && password.length >= 6 ? password : 'vendedor' + Math.floor(1000 + Math.random() * 9000);
+    const bcryptjs = await import('bcryptjs');
+    const hash = await bcryptjs.hash(senhaFinal, 10);
+    // Insere usuário
+    const stmt = db.prepare('INSERT INTO users (email, password, firstName, lastName, telefone, endereco, fotoUrl) VALUES (?, ?, ?, ?, ?, ?, ?)');
+    const result = stmt.run(email, hash, firstName, lastName, telefone || '', endereco || '', fotoUrl || '');
+    // Retorna dados do vendedor criado
+    res.status(201).json({
+      message: 'Vendedor criado com sucesso',
+      vendor: {
+        id: result.lastInsertRowid,
+        email,
+        firstName,
+        lastName,
+        telefone,
+        endereco,
+        fotoUrl,
+        handle
+      }
+    });
+  } catch (error) {
+    console.error('Erro ao criar vendedor:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });

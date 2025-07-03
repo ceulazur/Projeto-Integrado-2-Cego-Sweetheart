@@ -21,6 +21,7 @@ import AdminProdutos from "./pages/admin/Produtos";
 import AdminPedidos from "./pages/admin/Pedidos";
 import AdminPerfil from "./pages/admin/Perfil";
 import AdminLogin from "./pages/admin/AdminLogin";
+import CadastrarVendedor from "./pages/admin/CadastrarVendedor";
 
 const RequireAdminAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, user } = useAuth();
@@ -67,6 +68,7 @@ const App = () => (
                   <Route path="/admin/produtos" element={<RequireAdminAuth><AdminLayout><AdminProdutos /></AdminLayout></RequireAdminAuth>} />
                   <Route path="/admin/pedidos" element={<RequireAdminAuth><AdminLayout><AdminPedidos /></AdminLayout></RequireAdminAuth>} />
                   <Route path="/admin/perfil" element={<RequireAdminAuth><AdminLayout><AdminPerfil /></AdminLayout></RequireAdminAuth>} />
+                  <Route path="/admin/cadastrar-vendedor" element={<RequireAdminAuth><AdminLayout><CadastrarVendedor /></AdminLayout></RequireAdminAuth>} />
                   
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

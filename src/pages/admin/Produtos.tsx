@@ -92,7 +92,13 @@ const Produtos = () => {
         artistProfileImage: usuario.fotoUrl || ''
       };
     }
-    return { artistHandle: '', artistUsername: '', artistProfileImage: '' };
+    // Para vendedores novos, monta os campos corretamente
+    const firstName = usuario.nome.split(' ')[0] || usuario.nome;
+    return {
+      artistHandle: `@${firstName.toLowerCase()}`,
+      artistUsername: usuario.nome,
+      artistProfileImage: usuario.fotoUrl || ''
+    };
   };
   
   // Usa o vendedor selecionado se for admin, senão usa os dados do usuário atual
