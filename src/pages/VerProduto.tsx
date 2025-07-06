@@ -9,7 +9,7 @@ import { ProductDescription } from '../components/sections/ProductDescription';
 import { ProductQuantity } from '../components/sections/ProductQuantity';
 import { SizeSelector } from '../components/sections/SizeSelector';
 import { AddToCartButton } from '../components/sections/AddToCartButton';
-import { useProduct } from '../hooks/useProducts';
+import { useProduct, Product } from '../hooks/useProducts';
 import { useContext } from 'react';
 import { UserContext } from '../contexts/UserContext';
 
@@ -26,35 +26,42 @@ export const VerProduto: React.FC = () => {
     setSelectedSize(size);
   };
 
-  const handleAddToCart = async () => {
-    if (!usuario) {
-      alert('Você precisa estar logado para comprar.');
-      navigate('/login');
-      return;
-    }
-    if (productData) {
+  const handleAddToCart = () => {
+    if (!productData) return;
+    // Busca o carrinho atual
+    const stored = localStorage.getItem('cart');
+    type CartItem = {
+      id: string;
+      title: string;
+      price: string;
+      imageUrl: string;
+      quantity: number;
+      category: string;
+    };
+    let cart: CartItem[] = [];
+    if (stored) {
       try {
-        const res = await fetch('http://localhost:3000/api/pedidos', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            clienteNome: usuario.nome,
-            clienteId: usuario.id,
-            produtoId: productData.id,
-            produtoNome: productData.title,
-            formaPagamento: 'Pix',
-          })
-        });
-        const data = await res.json();
-        if (res.ok) {
-          alert('Pedido realizado com sucesso!');
-        } else {
-          alert(data.error || 'Erro ao criar pedido');
-        }
-      } catch (e) {
-        alert('Erro ao conectar com o servidor.');
-      }
+        cart = JSON.parse(stored);
+      } catch { cart = []; }
     }
+    // Verifica se o produto já está no carrinho
+    const idx = cart.findIndex((item) => item.id === productData.id);
+    if (idx >= 0) {
+      cart[idx].quantity += 1;
+    } else {
+      const item: CartItem = {
+        id: productData.id,
+        title: productData.title,
+        price: productData.price,
+        imageUrl: productData.imageUrl,
+        quantity: 1,
+        category: productData.category || "Outro"
+      };
+      console.log('Adicionando ao carrinho:', item);
+      cart.push(item);
+    }
+    localStorage.setItem('cart', JSON.stringify(cart));
+    navigate('/carrinho');
   };
 
   const handleGoBack = () => {

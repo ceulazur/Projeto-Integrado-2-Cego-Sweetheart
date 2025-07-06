@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import Register from "./pages/Register";
 import Catalogo from "./pages/Catalogo";
 import VerProduto from "./pages/VerProduto";
+import Carrinho from "./pages/Carrinho";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { UserProvider } from "./contexts/UserContext";
 import { FilterProvider } from "./contexts/FilterContext";
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/register" element={<Register />} />
                   <Route path="/catalogo" element={<Catalogo />} />
                   <Route path="/produto/:id" element={<VerProduto />} />
+                  <Route path="/carrinho" element={<Carrinho />} />
                   
                   {/* Login admin */}
                   <Route path="/admin/login" element={<AdminLogin />} />

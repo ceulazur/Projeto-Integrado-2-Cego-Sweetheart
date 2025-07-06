@@ -13,6 +13,7 @@ export interface Product {
   artistUsername: string;
   artistProfileImage: string;
   availableSizes: string[];
+  category: string;
 }
 
 const API_BASE_URL = 'http://localhost:3000/api';
