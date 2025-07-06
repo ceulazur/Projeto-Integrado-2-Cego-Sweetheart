@@ -43,15 +43,27 @@ export const CatalogSection: React.FC = () => {
 
   // Gera lista única de artistHandle dos produtos, junto com o nome do artista
   const artistOptions = React.useMemo(() => {
-    if (!products) return [];
     const map = new Map<string, string>();
-    products.forEach(p => {
-      if (!map.has(p.artistHandle)) {
-        map.set(p.artistHandle, p.artistUsername);
-      }
-    });
+    // Adiciona todos os vendedores
+    if (vendors) {
+      vendors.forEach(v => {
+        // @ts-expect-error: alguns vendors podem não ter handle explicitamente tipado
+        const handle = v.handle || `@${v.firstName.toLowerCase()}`;
+        if (handle && !map.has(handle)) {
+          map.set(handle, v.firstName + (v.lastName ? ' ' + v.lastName : ''));
+        }
+      });
+    }
+    // Adiciona todos os artistas dos produtos (caso algum produto tenha handle diferente)
+    if (products) {
+      products.forEach(p => {
+        if (!map.has(p.artistHandle)) {
+          map.set(p.artistHandle, p.artistUsername);
+        }
+      });
+    }
     return Array.from(map.entries()).map(([handle, username]) => ({ handle, username }));
-  }, [products]);
+  }, [vendors, products]);
 
   // Filtra produtos pelo artista selecionado
   const filteredProducts = React.useMemo(() => {

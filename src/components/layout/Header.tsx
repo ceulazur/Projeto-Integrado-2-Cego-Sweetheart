@@ -73,7 +73,7 @@ export const Header: React.FC = () => {
         artistProfileImage: vendor.fotoUrl || '/placeholder.svg',
       }));
       setArtists(uniqueArtists);
-    }
+      }
   }, [vendors]);
 
   // Atualiza produtos do artista ao selecionar

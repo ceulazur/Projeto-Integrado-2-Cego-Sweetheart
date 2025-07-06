@@ -2,15 +2,39 @@ import { useState, useEffect, useMemo, useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import type { ChangeEvent, FormEvent } from "react";
 import { PlusCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, Product } from "../../hooks/useProducts";
+import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "../../hooks/useProducts";
 import { useVendors, type Vendor } from "../../hooks/useVendors";
 import { useFilters } from "../../contexts/FilterContext";
 import { UserContext } from "../../contexts/UserContext";
 import type { Usuario } from "../../contexts/UserContext";
 import { useQueryClient } from '@tanstack/react-query';
 
+export type Product = {
+  id: string;
+  title: string;
+  price: string;
+  description: string;
+  quantity: number;
+  dimensions: string;
+  framed: boolean;
+  availableSizes: string[];
+  imageUrl: string;
+  artistHandle: string;
+  artistUsername: string;
+  artistProfileImage: string;
+  category: string;
+  isAvailable: boolean;
+  variations: Variation[];
+};
+
+type Variation = {
+  available: boolean;
+  size: string;
+  color: string;
+};
+
 const Produtos = () => {
-  const { data: produtos, isLoading, error } = useProducts();
+  const { data: produtosRaw, isLoading, error } = useProducts();
   const { data: vendors, isLoading: vendorsLoading } = useVendors();
   const { filters } = useFilters();
   const createProductMutation = useCreateProduct();
@@ -26,14 +50,22 @@ const Produtos = () => {
   const queryClient = useQueryClient();
 
   // Estado do formulário de produto
-  const [formData, setFormData] = useState({
-    title: "",
-    price: "",
-    description: "",
-    quantity: "",
-    dimensions: "",
+  const [formData, setFormData] = useState<Product>({
+    id: '',
+    title: '',
+    price: '',
+    description: '',
+    quantity: 1,
+    dimensions: '',
     framed: false,
-    availableSizes: ['P', 'M', 'G'] as string[]
+    availableSizes: ['P', 'M', 'G'],
+    imageUrl: '',
+    artistHandle: '',
+    artistUsername: '',
+    artistProfileImage: '',
+    category: 'Tela',
+    isAvailable: true,
+    variations: []
   });
 
   const [productImagePreview, setProductImagePreview] = useState<string>("");
@@ -129,13 +161,21 @@ const Produtos = () => {
     }
     
     setFormData({
+      id: produto.id,
       title: produto.title,
       price: produto.price,
       description: produto.description,
-      quantity: produto.quantity.toString(),
+      quantity: produto.quantity,
       dimensions: produto.dimensions,
       framed: produto.framed,
-      availableSizes: produto.availableSizes
+      availableSizes: produto.availableSizes,
+      imageUrl: produto.imageUrl,
+      artistHandle: produto.artistHandle,
+      artistUsername: produto.artistUsername,
+      artistProfileImage: produto.artistProfileImage,
+      category: produto.category,
+      isAvailable: produto.isAvailable,
+      variations: produto.variations
     });
     setProductImagePreview(produto.imageUrl ? (produto.imageUrl.startsWith('http') ? produto.imageUrl : `${serverUrl}${produto.imageUrl}`) : "");
     setUploadedImageUrl(produto.imageUrl || "");
@@ -157,13 +197,21 @@ const Produtos = () => {
     setEditingProduct(null);
     setSelectedVendor(null);
     setFormData({
-      title: "",
-      price: "",
-      description: "",
-      quantity: "",
-      dimensions: "",
+      id: '',
+      title: '',
+      price: '',
+      description: '',
+      quantity: 1,
+      dimensions: '',
       framed: false,
-      availableSizes: ['P', 'M', 'G']
+      availableSizes: ['P', 'M', 'G'],
+      imageUrl: '',
+      artistHandle: '',
+      artistUsername: '',
+      artistProfileImage: '',
+      category: 'Tela',
+      isAvailable: true,
+      variations: []
     });
     setProductImagePreview("");
     setUploadedImageUrl("");
@@ -190,16 +238,19 @@ const Produtos = () => {
 
   // Atualiza campos do formulário com máscara
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
-    let newValue = value;
+    let newValue: any = value;
+    if (type === 'checkbox' && e.target instanceof HTMLInputElement) {
+      newValue = e.target.checked;
+    }
     if (name === 'price') {
       newValue = isPriceFocused ? formatarPrecoMascara(value) : formatarPrecoFinal(value);
     }
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : newValue,
+      [name]: newValue
     }));
   };
 
@@ -265,6 +316,42 @@ const Produtos = () => {
     }
   };
 
+  // Funções para variações (adicionar/remover/editar)
+  const addVariation = () => {
+    setFormData((prev) => ({
+      ...prev,
+      variations: [
+        ...prev.variations,
+        { available: true, size: '', color: '' }
+      ]
+    }));
+  };
+  const removeVariation = (idx: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      variations: prev.variations.filter((_, i) => i !== idx)
+    }));
+  };
+  const handleVariationChange = (idx: number, field: keyof Variation, value: unknown) => {
+    setFormData((prev) => {
+      const newVars = [...prev.variations];
+      newVars[idx] = { ...newVars[idx], [field]: value };
+      return { ...prev, variations: newVars };
+    });
+  };
+
+  // Converter produtos recebidos para o tipo Product local
+  const produtos: Product[] | undefined = produtosRaw?.map((p: unknown) => {
+    const prod = p as Partial<Product>;
+    return {
+      ...prod,
+      category: prod.category || 'Outros',
+      isAvailable: prod.isAvailable !== undefined ? prod.isAvailable : true,
+      secondaryImages: prod.secondaryImages || [],
+      variations: prod.variations || []
+    } as Product;
+  });
+
   // Filtragem de produtos conforme usuário
   const filteredAndSortedProducts = useMemo(() => {
     if (!produtos) return [];
@@ -317,16 +404,16 @@ const Produtos = () => {
       alert('As dimensões são obrigatórias.');
       return;
     }
-    // Validar campos obrigatórios
-    if (
-      !formData.title ||
-      (isAdmin && !selectedVendor) ||
-      (!isAdmin && !artistData.artistHandle) ||
-      !formData.price ||
-      !formData.description ||
-      (!editingProduct && !uploadedImageUrl)
-    ) {
-      alert("Por favor, preencha todos os campos obrigatórios.");
+    if (!formData.price) {
+      alert('O preço é obrigatório.');
+      return;
+    }
+    if (!formData.description) {
+      alert('A descrição é obrigatória.');
+      return;
+    }
+    if (!editingProduct && !uploadedImageUrl) {
+      alert('A imagem principal é obrigatória.');
       return;
     }
     if (isRootAdmin && !editingProduct) {
@@ -335,34 +422,34 @@ const Produtos = () => {
     }
     try {
       const productData = {
+        id: editingProduct ? editingProduct.id : '',
         title: formData.title,
-        artistHandle: isAdmin ? artistData.artistHandle : artistData.artistHandle,
         price: formData.price,
-        imageUrl: editingProduct ? (uploadedImageUrl || editingProduct.imageUrl) : uploadedImageUrl,
         description: formData.description,
-        quantity: parseInt(formData.quantity) || 0,
+        quantity: formData.quantity,
         dimensions: formData.dimensions,
         framed: formData.framed,
+        availableSizes: formData.availableSizes,
+        imageUrl: editingProduct ? (uploadedImageUrl || editingProduct.imageUrl) : uploadedImageUrl,
+        artistHandle: isAdmin ? artistData.artistHandle : artistData.artistHandle,
         artistUsername: isAdmin ? artistData.artistUsername : artistData.artistUsername,
         artistProfileImage: isAdmin ? artistData.artistProfileImage : artistData.artistProfileImage,
-        availableSizes: formData.availableSizes
+        category: formData.category,
+        isAvailable: formData.isAvailable,
+        variations: formData.variations
       };
       if (editingProduct) {
         if (!isAdmin && editingProduct.artistHandle !== artistData.artistHandle) {
           alert("Você não pode editar produtos de outros vendedores.");
           return;
         }
-        await updateProductMutation.mutateAsync({
-          ...productData,
-          id: editingProduct.id
-        });
+        await updateProductMutation.mutateAsync(productData);
         alert("Produto atualizado com sucesso!");
       } else {
         await createProductMutation.mutateAsync(productData);
         alert("Produto criado com sucesso!");
       }
       fecharModal();
-      // Força recarregamento da lista de produtos
       queryClient.invalidateQueries({ queryKey: ['products'] });
     } catch (error) {
       alert("Erro ao salvar produto");
@@ -588,7 +675,69 @@ const Produtos = () => {
                 />
                 <label>Emoldurado</label>
               </div>
-
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="isAvailable"
+                  checked={formData.isAvailable}
+                  onChange={handleChange}
+                  className="border p-2 rounded"
+                />
+                <label>Disponível</label>
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="font-medium">Categoria</label>
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  className="border p-2 rounded"
+                  required
+                >
+                  <option value="Tela">Tela</option>
+                  <option value="Camisa">Camisa</option>
+                  <option value="Calça">Calça</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="font-medium">Variações</label>
+                <button
+                  type="button"
+                  onClick={addVariation}
+                  className="text-blue-600 hover:text-blue-800"
+                >
+                  Adicionar Variação
+                </button>
+                {formData.variations.map((variation, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      name={`variation-size-${idx}`}
+                      placeholder="Tamanho"
+                      value={variation.size}
+                      onChange={(e) => handleVariationChange(idx, 'size', e.target.value)}
+                      className="border p-2 rounded"
+                    />
+                    <input
+                      type="text"
+                      name={`variation-color-${idx}`}
+                      placeholder="Cor"
+                      value={variation.color}
+                      onChange={(e) => handleVariationChange(idx, 'color', e.target.value)}
+                      className="border p-2 rounded"
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        removeVariation(idx);
+                      }}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      Remover
+                    </button>
+                  </div>
+                ))}
+              </div>
               <div className="flex justify-end gap-4 mt-4">
                 <button
                   type="button"

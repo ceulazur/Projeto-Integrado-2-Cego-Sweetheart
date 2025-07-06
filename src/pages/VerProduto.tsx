@@ -126,16 +126,23 @@ export const VerProduto: React.FC = () => {
           quantity={productData.quantity}
         />
 
-        <SizeSelector
-          sizes={productData.availableSizes}
-          defaultSize="P"
-          onSizeChange={handleSizeChange}
-        />
+        <section className="mt-2 w-64 max-w-full text-sm text-gray-700">
+          <div>Categoria: <span className="font-bold text-black">{productData.category}</span></div>
+        </section>
+        {(productData.category === 'Camisa' || productData.category === 'Calça') && (
+          <SizeSelector
+            sizes={productData.availableSizes}
+            defaultSize="P"
+            onSizeChange={handleSizeChange}
+          />
+        )}
 
-        <AddToCartButton 
-          onAddToCart={handleAddToCart}
-          disabled={productData.quantity === 0}
-        />
+        <div className="flex justify-center w-full mt-4">
+          <AddToCartButton 
+            onAddToCart={handleAddToCart}
+            disabled={productData.quantity === 0}
+          />
+        </div>
       </div>
     </main>
   );

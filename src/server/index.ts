@@ -30,6 +30,9 @@ interface Product {
   artistProfileImage: string;
   availableSizes: string;
   created_at: string;
+  category: string;
+  isAvailable: boolean;
+  variations: string;
 }
 
 interface RegisterRequest {
@@ -51,6 +54,9 @@ interface ProductRequest {
   artistUsername: string;
   artistProfileImage: string;
   availableSizes: string[];
+  category: string;
+  isAvailable: boolean;
+  variations: { size: string; color: string }[];
 }
 
 // ES Modules fix for __dirname
@@ -93,7 +99,10 @@ db.exec(`
     artistUsername TEXT NOT NULL,
     artistProfileImage TEXT NOT NULL,
     availableSizes TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    category TEXT DEFAULT 'Tela',
+    isAvailable BOOLEAN DEFAULT 1,
+    variations TEXT DEFAULT '[]'
   );
 
   CREATE TABLE IF NOT EXISTS pedidos (
@@ -106,6 +115,19 @@ db.exec(`
     produtoNome TEXT,
     formaPagamento TEXT,
     codigoRastreio TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS vendors (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    firstName TEXT NOT NULL,
+    lastName TEXT NOT NULL,
+    telefone TEXT,
+    endereco TEXT,
+    fotoUrl TEXT,
+    handle TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `);
 
@@ -126,7 +148,10 @@ if (count.count === 0) {
       framed: true,
       artistUsername: "@Ceulazur",
       artistProfileImage: "https://cdn.builder.io/api/v1/image/assets/c9e61df7bfe543a0b7e24feda3172117/235d1fa082185e9c963e83352ff5b3b837f0f7e2?placeholderIfAbsent=true",
-      availableSizes: JSON.stringify(['P', 'M', 'G'])
+      availableSizes: JSON.stringify(['P', 'M', 'G']),
+      category: 'Outros',
+      isAvailable: true,
+      variations: '[]'
     },
     {
       title: "Vulk",
@@ -139,7 +164,10 @@ if (count.count === 0) {
       framed: true,
       artistUsername: "@Ceulazur",
       artistProfileImage: "https://cdn.builder.io/api/v1/image/assets/c9e61df7bfe543a0b7e24feda3172117/235d1fa082185e9c963e83352ff5b3b837f0f7e2?placeholderIfAbsent=true",
-      availableSizes: JSON.stringify(['P', 'M', 'G'])
+      availableSizes: JSON.stringify(['P', 'M', 'G']),
+      category: 'Outros',
+      isAvailable: true,
+      variations: '[]'
     },
     {
       title: "Vulk",
@@ -152,7 +180,10 @@ if (count.count === 0) {
       framed: true,
       artistUsername: "@Ceulazur",
       artistProfileImage: "https://cdn.builder.io/api/v1/image/assets/c9e61df7bfe543a0b7e24feda3172117/235d1fa082185e9c963e83352ff5b3b837f0f7e2?placeholderIfAbsent=true",
-      availableSizes: JSON.stringify(['P', 'M', 'G'])
+      availableSizes: JSON.stringify(['P', 'M', 'G']),
+      category: 'Outros',
+      isAvailable: true,
+      variations: '[]'
     },
     {
       title: "Vulk",
@@ -165,15 +196,19 @@ if (count.count === 0) {
       framed: true,
       artistUsername: "@Ceulazur",
       artistProfileImage: "https://cdn.builder.io/api/v1/image/assets/c9e61df7bfe543a0b7e24feda3172117/235d1fa082185e9c963e83352ff5b3b837f0f7e2?placeholderIfAbsent=true",
-      availableSizes: JSON.stringify(['P', 'M', 'G'])
+      availableSizes: JSON.stringify(['P', 'M', 'G']),
+      category: 'Outros',
+      isAvailable: true,
+      variations: '[]'
     }
   ];
 
   const insertProductStmt = db.prepare(`
     INSERT INTO products (
       title, artistHandle, price, imageUrl, description, quantity, 
-      dimensions, framed, artistUsername, artistProfileImage, availableSizes
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      dimensions, framed, artistUsername, artistProfileImage, availableSizes,
+      category, isAvailable, variations
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   sampleProducts.forEach(product => {
@@ -188,7 +223,10 @@ if (count.count === 0) {
       product.framed ? 1 : 0,
       product.artistUsername,
       product.artistProfileImage,
-      product.availableSizes
+      product.availableSizes,
+      product.category || 'Outros',
+      product.isAvailable !== undefined ? (product.isAvailable ? 1 : 0) : 1,
+      JSON.stringify(product.variations || [])
     );
   });
 }
@@ -211,6 +249,29 @@ adminUsers.forEach(async (user) => {
     insertUserStmt.run(user.email, hash, user.firstName, user.lastName);
   }
 });
+
+// Migra vendedores conhecidos da tabela users para vendors (se ainda não migrados)
+const knownVendors = [
+  { email: 'artemisia', handle: '@artemisia' },
+  { email: 'ceulazur', handle: '@ceulazur' },
+  { email: 'testecapi@exemplo.com', handle: '@teste' },
+  { email: 'criacadoteste@gmail.com', handle: '@teste' }
+];
+
+for (const v of knownVendors) {
+  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(v.email) as any;
+  if (user) {
+    // Verifica se já existe na tabela vendors
+    const exists = db.prepare('SELECT COUNT(*) as count FROM vendors WHERE email = ?').get(v.email) as { count: number };
+    if (exists.count === 0) {
+      db.prepare(`INSERT INTO vendors (email, password, firstName, lastName, telefone, endereco, fotoUrl, handle, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .run(user.email, user.password, user.firstName, user.lastName, user.telefone || '', user.endereco || '', user.fotoUrl || '', v.handle, user.created_at);
+    }
+    // Remove da tabela users
+    db.prepare('DELETE FROM users WHERE email = ?').run(v.email);
+  }
+}
 
 // Configuração do multer para uploads
 const upload = multer({
@@ -265,7 +326,10 @@ app.get('/api/products', (_req: Request, res: Response) => {
       framed: Boolean(product.framed),
       artistUsername: product.artistUsername,
       artistProfileImage: product.artistProfileImage,
-      availableSizes: JSON.parse(product.availableSizes)
+      availableSizes: JSON.parse(product.availableSizes),
+      category: product.category || 'Outros',
+      isAvailable: product.isAvailable !== undefined ? Boolean(product.isAvailable) : true,
+      variations: product.variations ? JSON.parse(product.variations) : []
     }));
 
     res.json(transformedProducts);
@@ -304,7 +368,10 @@ app.get('/api/products/search', (req: Request, res: Response) => {
       ...product,
       id: product.id.toString(),
       framed: Boolean(product.framed),
-      availableSizes: JSON.parse(product.availableSizes)
+      availableSizes: JSON.parse(product.availableSizes),
+      category: product.category || 'Outros',
+      isAvailable: product.isAvailable !== undefined ? Boolean(product.isAvailable) : true,
+      variations: product.variations ? JSON.parse(product.variations) : []
     }));
 
     res.json(transformedProducts);
@@ -321,7 +388,8 @@ app.get('/api/products/:id', (req: Request, res: Response) => {
     const product = db.prepare('SELECT * FROM products WHERE id = ?').get(id) as Product | undefined;
 
     if (!product) {
-      return res.status(404).json({ error: 'Produto não encontrado' });
+      res.status(404).json({ error: 'Produto não encontrado' });
+      return;
     }
 
     // Transform product to match frontend interface
@@ -337,7 +405,10 @@ app.get('/api/products/:id', (req: Request, res: Response) => {
       framed: Boolean(product.framed),
       artistUsername: product.artistUsername,
       artistProfileImage: product.artistProfileImage,
-      availableSizes: JSON.parse(product.availableSizes)
+      availableSizes: JSON.parse(product.availableSizes),
+      category: product.category || 'Outros',
+      isAvailable: product.isAvailable !== undefined ? Boolean(product.isAvailable) : true,
+      variations: product.variations ? JSON.parse(product.variations) : []
     };
 
     res.json(transformedProduct);
@@ -355,8 +426,9 @@ app.post('/api/products', (req: Request, res: Response) => {
     const stmt = db.prepare(`
       INSERT INTO products (
         title, artistHandle, price, imageUrl, description, quantity, 
-        dimensions, framed, artistUsername, artistProfileImage, availableSizes
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        dimensions, framed, artistUsername, artistProfileImage, availableSizes,
+        category, isAvailable, variations
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     
     const result = stmt.run(
@@ -370,7 +442,10 @@ app.post('/api/products', (req: Request, res: Response) => {
       productData.framed ? 1 : 0,
       productData.artistUsername,
       productData.artistProfileImage,
-      JSON.stringify(productData.availableSizes)
+      JSON.stringify(productData.availableSizes),
+      productData.category || 'Tela',
+      productData.isAvailable !== undefined ? (productData.isAvailable ? 1 : 0) : 1,
+      JSON.stringify(productData.variations || [])
     );
 
     res.status(201).json({ 
@@ -393,7 +468,7 @@ app.put('/api/products/:id', (req: Request, res: Response) => {
       UPDATE products SET 
         title = ?, artistHandle = ?, price = ?, imageUrl = ?, description = ?, 
         quantity = ?, dimensions = ?, framed = ?, artistUsername = ?, 
-        artistProfileImage = ?, availableSizes = ?
+        artistProfileImage = ?, availableSizes = ?, category = ?, isAvailable = ?, variations = ?
       WHERE id = ?
     `);
     
@@ -409,6 +484,9 @@ app.put('/api/products/:id', (req: Request, res: Response) => {
       productData.artistUsername,
       productData.artistProfileImage,
       JSON.stringify(productData.availableSizes),
+      productData.category || 'Outros',
+      productData.isAvailable !== undefined ? (productData.isAvailable ? 1 : 0) : 1,
+      JSON.stringify(productData.variations || []),
       id
     );
 
@@ -476,28 +554,55 @@ app.post('/api/login', async (req: Request, res: Response) => {
   }
 
   try {
-    const stmt = db.prepare('SELECT * FROM users WHERE email = ?');
-    const user = stmt.get(email) as User | undefined;
-
+    // Primeiro tenta autenticar como vendedor
+    let stmt = db.prepare('SELECT * FROM vendors WHERE email = ?');
+    let user = stmt.get(email);
+    let userType = 'vendor';
+    if (!user) {
+      // Se não for vendedor, tenta como cliente
+      stmt = db.prepare('SELECT * FROM users WHERE email = ?');
+      user = stmt.get(email);
+      userType = 'user';
+    }
     if (!user) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
-
-    const isValidPassword = await bcrypt.compare(password, user.password);
-
+    const bcryptjs = await import('bcryptjs');
+    const isValidPassword = await bcryptjs.compare(password, user.password);
     if (!isValidPassword) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
-
-    res.json({ 
-      message: 'Login realizado com sucesso',
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName
-      }
-    });
+    // Retorna dados do usuário ou vendedor
+    if (userType === 'vendor') {
+      res.json({
+        message: 'Login realizado com sucesso',
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          telefone: user.telefone,
+          endereco: user.endereco,
+          fotoUrl: user.fotoUrl,
+          handle: user.handle,
+          tipo: 'vendedor'
+        }
+      });
+    } else {
+      res.json({
+        message: 'Login realizado com sucesso',
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          telefone: user.telefone,
+          endereco: user.endereco,
+          fotoUrl: user.fotoUrl,
+          tipo: 'cliente'
+        }
+      });
+    }
   } catch (error) {
     console.error('Erro ao fazer login:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
@@ -515,21 +620,15 @@ app.get('/api/users', (_req: Request, res: Response) => {
   }
 });
 
-// Rota para buscar todos os vendedores (exceto admin root)
+// Ajustar rota de vendors para buscar só da tabela vendors
 app.get('/api/vendors', (_req: Request, res: Response) => {
   try {
     const vendors = db.prepare(`
-      SELECT id, email, firstName, lastName, telefone, endereco, fotoUrl, created_at 
-      FROM users 
-      WHERE email != 'admin' AND email != 'admin@admin.com'
+      SELECT id, email, firstName, lastName, telefone, endereco, fotoUrl, handle, created_at 
+      FROM vendors 
       ORDER BY firstName
     `).all();
-    // Adiciona campo handle e mantém compatibilidade
-    const result = vendors.map((v: any) => ({
-      ...v,
-      handle: typeof v.handle === 'string' ? v.handle : `@${v.firstName ? v.firstName.toLowerCase() : ''}`
-    }));
-    res.json(result);
+    res.json(vendors);
   } catch (error) {
     console.error('Erro ao buscar vendedores:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
@@ -690,26 +789,22 @@ app.put('/api/pedidos/:id', express.json(), (req: Request, res: Response) => {
   }
 });
 
-// Endpoint para criar novo vendedor
+// Ajustar cadastro de vendedor para inserir na tabela vendors
 app.post('/api/vendors', async (req: Request, res: Response) => {
   try {
     const { email, firstName, lastName, telefone, endereco, fotoUrl, handle, password } = req.body;
-    if (!email || !firstName || !lastName || !handle) {
+    if (!email || !firstName || !lastName || !handle || !password) {
       return res.status(400).json({ error: 'Campos obrigatórios faltando' });
     }
     // Verifica se já existe
-    const exists = db.prepare('SELECT COUNT(*) as count FROM users WHERE email = ?').get(email) as { count: number };
+    const exists = db.prepare('SELECT COUNT(*) as count FROM vendors WHERE email = ?').get(email) as { count: number };
     if (exists.count > 0) {
-      return res.status(409).json({ error: 'Já existe um usuário com este email' });
+      return res.status(409).json({ error: 'Já existe um vendedor com este email' });
     }
-    // Usa senha enviada ou gera temporária
-    const senhaFinal = password && password.length >= 6 ? password : 'vendedor' + Math.floor(1000 + Math.random() * 9000);
     const bcryptjs = await import('bcryptjs');
-    const hash = await bcryptjs.hash(senhaFinal, 10);
-    // Insere usuário
-    const stmt = db.prepare('INSERT INTO users (email, password, firstName, lastName, telefone, endereco, fotoUrl) VALUES (?, ?, ?, ?, ?, ?, ?)');
-    const result = stmt.run(email, hash, firstName, lastName, telefone || '', endereco || '', fotoUrl || '');
-    // Retorna dados do vendedor criado
+    const hash = await bcryptjs.hash(password, 10);
+    const stmt = db.prepare('INSERT INTO vendors (email, password, firstName, lastName, telefone, endereco, fotoUrl, handle) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+    const result = stmt.run(email, hash, firstName, lastName, telefone || '', endereco || '', fotoUrl || '', handle);
     res.status(201).json({
       message: 'Vendedor criado com sucesso',
       vendor: {
@@ -726,6 +821,20 @@ app.post('/api/vendors', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Erro ao criar vendedor:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Endpoint para buscar vendedor por ID
+app.get('/api/vendors/:id', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const vendor = db.prepare('SELECT id, email, firstName, lastName, telefone, endereco, fotoUrl, handle FROM vendors WHERE id = ?').get(id);
+    if (!vendor) {
+      return res.status(404).json({ error: 'Vendedor não encontrado' });
+    }
+    res.json(vendor);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao buscar vendedor' });
   }
 });
 

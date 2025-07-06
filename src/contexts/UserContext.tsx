@@ -34,10 +34,15 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       if (authUser?.id) {
         setLoading(true);
         try {
-          const response = await fetch(`http://localhost:3000/api/users/${authUser.id}`);
+          // Detecta tipo do usuário (vendedor ou cliente)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const tipo = (authUser as any).tipo;
+          const endpoint = tipo === 'vendedor'
+            ? `http://localhost:3000/api/vendors/${authUser.id}`
+            : `http://localhost:3000/api/users/${authUser.id}`;
+          const response = await fetch(endpoint);
           if (response.ok) {
             const data = await response.json();
-            // O backend retorna `firstName` e `lastName`, vamos combinar para `nome`
             setUsuario({
               id: data.id,
               nome: `${data.firstName} ${data.lastName}`,
