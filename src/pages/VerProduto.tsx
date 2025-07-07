@@ -29,6 +29,10 @@ export const VerProduto: React.FC = () => {
   };
 
   const handleAddToCart = () => {
+    if (!user?.id) {
+      navigate('/login');
+      return;
+    }
     if (!productData) return;
     // Busca o carrinho atual
     const stored = localStorage.getItem(getCartKey(user?.id));

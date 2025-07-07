@@ -155,6 +155,7 @@ export const CatalogSection: React.FC = () => {
               price={product.price}
               imageUrl={product.imageUrl}
               productId={product.id}
+              quantity={product.quantity}
               shadowClass={index % 2 === 1 ? "shadow-[4px_4px_4px_rgba(0,0,0,1)]" : "shadow-[4px_4px_10px_rgba(0,0,0,1)]"}
               className="my-auto"
             />

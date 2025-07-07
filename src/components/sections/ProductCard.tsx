@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth, getCartKey } from '../../contexts/AuthContext';
 
 interface ProductCardProps {
   title: string;
@@ -9,6 +10,7 @@ interface ProductCardProps {
   shadowClass?: string;
   className?: string;
   productId?: string;
+  quantity?: number;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -18,9 +20,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   imageUrl,
   shadowClass = "shadow-[4px_4px_10px_rgba(0,0,0,1)]",
   className = "",
-  productId
+  productId,
+  quantity = 1
 }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleProductClick = () => {
     if (productId) {
@@ -33,8 +37,40 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   const handleBuyClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Lógica para adicionar ao carrinho
-    console.log(`Adicionando ${title} ao carrinho`);
+    if (!user?.id) {
+      navigate('/login');
+      return;
+    }
+    if (!productId) return;
+    // Monta o item do produto
+    const item = {
+      id: productId,
+      title,
+      price,
+      imageUrl,
+      quantity: 1,
+      category: '',
+    };
+    // Busca o carrinho atual do usuário
+    const cartKey = getCartKey(user?.id);
+    const stored = localStorage.getItem(cartKey);
+    let cart: Array<{id: string, title: string, price: string, imageUrl: string, quantity: number, category: string}> = [];
+    if (stored) {
+      try {
+        cart = JSON.parse(stored);
+      } catch {
+        cart = [];
+      }
+    }
+    // Se já existe o produto, só incrementa a quantidade
+    const idx = cart.findIndex((p) => p.id === productId);
+    if (idx >= 0) {
+      cart[idx].quantity += 1;
+    } else {
+      cart.push(item);
+    }
+    localStorage.setItem(cartKey, JSON.stringify(cart));
+    navigate('/carrinho');
   };
 
   return (
@@ -59,10 +95,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {price}
       </p>
       <button 
-        className="gap-2.5 self-center px-12 py-2 mt-2 max-w-full text-xs font-medium text-white whitespace-nowrap bg-black rounded-3xl border border-solid border-zinc-600 min-h-[31px] w-[166px] hover:bg-gray-800 transition-colors"
-        onClick={handleBuyClick}
+        className={`gap-2.5 self-center px-12 py-2 mt-2 max-w-full text-xs font-medium text-white whitespace-nowrap rounded-3xl border border-solid border-zinc-600 min-h-[31px] w-[166px] transition-colors
+        ${quantity > 0 ? 'bg-black hover:bg-gray-800' : 'bg-gray-400 opacity-60 cursor-not-allowed'}`}
+        onClick={quantity > 0 ? handleBuyClick : undefined}
+        disabled={quantity <= 0}
       >
-        COMPRAR
+        {quantity > 0 ? 'COMPRAR' : 'SEM ESTOQUE'}
       </button>
     </article>
   );
