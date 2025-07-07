@@ -8,12 +8,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ error, theme = 'green', className = '', ...props }, ref) => {
-    const themeColors = {
-      green: 'focus:ring-[rgba(12,212,32,1)] focus:border-[rgba(12,212,32,1)]',
-      blue: 'focus:ring-[rgba(12,135,212,1)] focus:border-[rgba(12,135,212,1)]'
-    };
-
+  ({ error, className = '', ...props }, ref) => {
     return (
       <div className="w-full">
         <div className="relative">
@@ -35,7 +30,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               placeholder:text-black
               focus:outline-none
               focus:ring-2
-              ${themeColors[theme]}
+              focus:ring-black
+              focus:border-black
               ${error ? 'border-red-500' : ''}
               ${className}
             `}

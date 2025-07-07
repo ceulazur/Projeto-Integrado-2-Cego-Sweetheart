@@ -482,13 +482,13 @@ const Produtos = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Produtos</h1>
         {!isRootAdmin && (
-          <button
-            onClick={abrirModal}
-            className="text-green-600 hover:text-green-800"
-            aria-label="Adicionar Produto"
-          >
-            <PlusCircleIcon className="h-8 w-8" />
-          </button>
+        <button
+          onClick={abrirModal}
+          className="text-green-600 hover:text-green-800"
+          aria-label="Adicionar Produto"
+        >
+          <PlusCircleIcon className="h-8 w-8" />
+        </button>
         )}
       </div>
 
@@ -591,8 +591,8 @@ const Produtos = () => {
                       const vendor = vendors?.find(v => v.id === vendorId) || null;
                       setSelectedVendor(vendor);
                     }}
-                    className="border p-2 rounded"
-                    required
+                  className="border p-2 rounded"
+                  required
                   >
                     <option value="">Selecione um vendedor</option>
                     {vendors?.map((vendor) => (
@@ -623,21 +623,21 @@ const Produtos = () => {
                 className="border p-2 rounded"
                 required
               />
-              <div className="flex flex-col gap-2">
-                <label className="font-medium">Imagem do Produto</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleProductImageChange}
-                />
-                {productImagePreview && (
-                  <img
-                    src={productImagePreview}
-                    alt="Preview da imagem do produto"
-                    className="w-full h-40 object-cover rounded border"
+                <div className="flex flex-col gap-2">
+                  <label className="font-medium">Imagem do Produto</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleProductImageChange}
                   />
-                )}
-              </div>
+                  {productImagePreview && (
+                    <img
+                      src={productImagePreview}
+                      alt="Preview da imagem do produto"
+                      className="w-full h-40 object-cover rounded border"
+                    />
+                  )}
+                </div>
               <textarea
                 name="description"
                 placeholder="Descrição"
@@ -724,8 +724,8 @@ const Produtos = () => {
                       placeholder="Cor"
                       value={variation.color}
                       onChange={(e) => handleVariationChange(idx, 'color', e.target.value)}
-                      className="border p-2 rounded"
-                    />
+                  className="border p-2 rounded"
+                />
                     <button
                       onClick={(e) => {
                         e.preventDefault();

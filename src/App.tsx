@@ -11,6 +11,8 @@ import Register from "./pages/Register";
 import Catalogo from "./pages/Catalogo";
 import VerProduto from "./pages/VerProduto";
 import Carrinho from "./pages/Carrinho";
+import Entrega from "./pages/Entrega";
+import Pagamento from "./pages/Pagamento";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { UserProvider } from "./contexts/UserContext";
 import { FilterProvider } from "./contexts/FilterContext";
@@ -60,6 +62,8 @@ const App = () => (
                   <Route path="/catalogo" element={<Catalogo />} />
                   <Route path="/produto/:id" element={<VerProduto />} />
                   <Route path="/carrinho" element={<Carrinho />} />
+                  <Route path="/entrega" element={<Entrega />} />
+                  <Route path="/pagamento" element={<Pagamento />} />
                   
                   {/* Login admin */}
                   <Route path="/admin/login" element={<AdminLogin />} />

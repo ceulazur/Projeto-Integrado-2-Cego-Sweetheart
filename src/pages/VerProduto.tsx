@@ -48,7 +48,7 @@ export const VerProduto: React.FC = () => {
     const idx = cart.findIndex((item) => item.id === productData.id);
     if (idx >= 0) {
       cart[idx].quantity += 1;
-    } else {
+        } else {
       const item: CartItem = {
         id: productData.id,
         title: productData.title,
@@ -59,7 +59,7 @@ export const VerProduto: React.FC = () => {
       };
       console.log('Adicionando ao carrinho:', item);
       cart.push(item);
-    }
+        }
     localStorage.setItem('cart', JSON.stringify(cart));
     navigate('/carrinho');
   };
@@ -137,18 +137,18 @@ export const VerProduto: React.FC = () => {
           <div>Categoria: <span className="font-bold text-black">{productData.category}</span></div>
         </section>
         {(productData.category === 'Camisa' || productData.category === 'Calça') && (
-          <SizeSelector
-            sizes={productData.availableSizes}
-            defaultSize="P"
-            onSizeChange={handleSizeChange}
-          />
+        <SizeSelector
+          sizes={productData.availableSizes}
+          defaultSize="P"
+          onSizeChange={handleSizeChange}
+        />
         )}
 
         <div className="flex justify-center w-full mt-4">
-          <AddToCartButton 
-            onAddToCart={handleAddToCart}
-            disabled={productData.quantity === 0}
-          />
+        <AddToCartButton 
+          onAddToCart={handleAddToCart}
+          disabled={productData.quantity === 0}
+        />
         </div>
       </div>
     </main>

@@ -589,19 +589,19 @@ app.post('/api/login', async (req: Request, res: Response) => {
         }
       });
     } else {
-      res.json({
-        message: 'Login realizado com sucesso',
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
+    res.json({ 
+      message: 'Login realizado com sucesso',
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
           lastName: user.lastName,
           telefone: user.telefone,
           endereco: user.endereco,
           fotoUrl: user.fotoUrl,
           tipo: 'cliente'
-        }
-      });
+      }
+    });
     }
   } catch (error) {
     console.error('Erro ao fazer login:', error);
