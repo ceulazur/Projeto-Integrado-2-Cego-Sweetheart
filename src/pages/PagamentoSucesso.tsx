@@ -20,6 +20,7 @@ const PagamentoSucesso: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'auto' });
     const stored = localStorage.getItem('cart');
     if (stored) {
       try {

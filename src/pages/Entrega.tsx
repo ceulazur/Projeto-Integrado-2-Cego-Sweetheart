@@ -3,6 +3,7 @@ import { Header } from '../components/layout/Header';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
+import { useNavigate } from 'react-router-dom';
 
 interface CartItem {
   id: string;
@@ -13,7 +14,7 @@ interface CartItem {
   category: string;
 }
 
-const FRETE = 52.72;
+const FRETE = 0.00;
 
 const Entrega: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -23,6 +24,7 @@ const Entrega: React.FC = () => {
   const [number, setNumber] = useState('');
   const [complement, setComplement] = useState('');
   const [cpfCnpj, setCpfCnpj] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const stored = localStorage.getItem('cart');
@@ -38,11 +40,20 @@ const Entrega: React.FC = () => {
   const subtotal = cart.reduce((acc, item) => acc + (parseFloat(item.price.replace('R$', '').replace(',', '.')) * item.quantity), 0);
   const total = subtotal + FRETE;
 
+  // Função para aplicar máscara de CPF
+  function maskCpf(value: string) {
+    // Remove tudo que não for número
+    value = value.replace(/\D/g, '');
+    // Aplica a máscara
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    return value;
+  }
+
   function handleContinue(e: React.FormEvent) {
     e.preventDefault();
-    // Aqui pode ser feita a validação e navegação para o pagamento
-    // Exemplo: navigate('/pagamento', { state: { street, city, cep, number, complement, cpfCnpj } });
-    alert('Formulário enviado!');
+    navigate('/escolha-entrega');
   }
 
   return (
@@ -133,7 +144,7 @@ const Entrega: React.FC = () => {
           id="cpfCnpj"
           placeholder="CPF ou CNPJ"
           value={cpfCnpj}
-          onChange={e => setCpfCnpj(e.target.value)}
+          onChange={e => setCpfCnpj(maskCpf(e.target.value))}
           required
         />
         <Button type="submit" className="mt-8 mb-4 bg-black text-white focus:ring-black focus:border-black">CONTINUAR</Button>

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Header } from '../components/layout/Header';
 import { TrashIcon } from '@heroicons/react/24/outline';
+import { Button } from '../components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface CartItem {
   id: string;
@@ -13,6 +15,7 @@ interface CartItem {
 
 const Carrinho: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Busca os produtos do carrinho do localStorage
@@ -83,13 +86,12 @@ const Carrinho: React.FC = () => {
             ))}
           </ul>
           <div className="flex flex-col items-center mt-8 gap-4">
-            <button
-              className="bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 px-8 rounded-lg text-lg transition-colors shadow"
-              style={{ letterSpacing: 1 }}
-              onClick={() => {}}
+            <Button
+              className="w-full bg-black text-white rounded-2xl py-5 text-2xl font-semibold mt-2 focus:ring-black focus:border-black"
+              onClick={() => navigate('/entrega')}
             >
               Prosseguir para compra
-            </button>
+            </Button>
           </div>
           </>
         )}

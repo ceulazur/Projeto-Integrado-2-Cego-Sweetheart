@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Header } from '../components/layout/Header';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const deliveryOptions = [
   {
@@ -36,6 +37,7 @@ interface CartItem {
 const EscolhaEntrega: React.FC = () => {
   const [selected, setSelected] = useState('sedex');
   const [cart, setCart] = useState<CartItem[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const stored = localStorage.getItem('cart');
@@ -56,8 +58,8 @@ const EscolhaEntrega: React.FC = () => {
   function handleContinue(e: React.FormEvent) {
     e.preventDefault();
     if (!selected) return;
-    // Aqui pode ser feita a navegação para a tela de pagamento
-    alert('Continuar para pagamento!');
+    localStorage.setItem('selectedFrete', frete.toString());
+    navigate('/pagamento');
   }
 
   return (
@@ -129,12 +131,12 @@ const EscolhaEntrega: React.FC = () => {
                       aria-hidden="true"
                     />
                     <div className="flex flex-col items-stretch">
-                      <div className="text-xl font-bold">{option.name}</div>
+                      <div className="text-xl font-bold text-black">{option.name}</div>
                       <div className={`font-normal mt-${index === 2 ? '2' : '[7px]'} ${index === 2 ? 'text-[15px]' : 'text-sm'}`}>{option.description}</div>
                     </div>
                   </label>
                 </div>
-                <div className="text-xl font-bold text-right self-stretch my-auto">R$ {option.price.toFixed(2).replace('.', ',')}</div>
+                <div className="text-xl font-bold text-right self-stretch my-auto text-black">R$ {option.price.toFixed(2).replace('.', ',')}</div>
               </div>
             ))}
           </fieldset>

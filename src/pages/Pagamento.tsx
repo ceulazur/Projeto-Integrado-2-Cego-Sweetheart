@@ -33,11 +33,12 @@ const paymentMethods = [
   },
 ];
 
-const FRETE = 52.72;
+const DEFAULT_FRETE = 52.72;
 
 const Pagamento: React.FC = () => {
   const [selected, setSelected] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [frete, setFrete] = useState(DEFAULT_FRETE);
 
   useEffect(() => {
     const stored = localStorage.getItem('cart');
@@ -48,14 +49,24 @@ const Pagamento: React.FC = () => {
         setCart([]);
       }
     }
+    const storedFrete = localStorage.getItem('selectedFrete');
+    if (storedFrete && !isNaN(Number(storedFrete))) {
+      setFrete(Number(storedFrete));
+    } else {
+      setFrete(DEFAULT_FRETE);
+    }
   }, []);
 
   const subtotal = cart.reduce((acc, item) => acc + (parseFloat(item.price.replace('R$', '').replace(',', '.')) * item.quantity), 0);
-  const total = subtotal + FRETE;
+  const total = subtotal + frete;
 
   function handleFinish(e: React.FormEvent) {
     e.preventDefault();
     if (!selected) return;
+    if (selected === 'credit-card') {
+      window.location.href = '/pagamento-cartao';
+      return;
+    }
     // Aqui pode ser feita a lógica de finalização
     alert('Compra finalizada!');
   }
@@ -133,7 +144,7 @@ const Pagamento: React.FC = () => {
           </div>
           <div className="flex justify-between mb-5">
             <span>Custo de frete</span>
-            <span>R$ {FRETE.toFixed(2).replace('.', ',')}</span>
+            <span>R$ {frete.toFixed(2).replace('.', ',')}</span>
           </div>
           <div className="flex justify-between pt-2.5 text-lg font-semibold border-t border-solid border-t-black border-t-opacity-20">
             <span>Total</span>
