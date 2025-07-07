@@ -13,6 +13,8 @@ import VerProduto from "./pages/VerProduto";
 import Carrinho from "./pages/Carrinho";
 import Entrega from "./pages/Entrega";
 import Pagamento from "./pages/Pagamento";
+import EscolhaEntrega from "./pages/EscolhaEntrega";
+import PagamentoSucesso from "./pages/PagamentoSucesso";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { UserProvider } from "./contexts/UserContext";
 import { FilterProvider } from "./contexts/FilterContext";
@@ -64,6 +66,8 @@ const App = () => (
                   <Route path="/carrinho" element={<Carrinho />} />
                   <Route path="/entrega" element={<Entrega />} />
                   <Route path="/pagamento" element={<Pagamento />} />
+                  <Route path="/escolha-entrega" element={<EscolhaEntrega />} />
+                  <Route path="/pagamento-sucesso" element={<PagamentoSucesso />} />
                   
                   {/* Login admin */}
                   <Route path="/admin/login" element={<AdminLogin />} />
