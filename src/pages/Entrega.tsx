@@ -4,6 +4,7 @@ import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { useNavigate } from 'react-router-dom';
+import { useAuth, getCartKey } from '../contexts/AuthContext';
 
 interface CartItem {
   id: string;
@@ -25,9 +26,10 @@ const Entrega: React.FC = () => {
   const [complement, setComplement] = useState('');
   const [cpfCnpj, setCpfCnpj] = useState('');
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
-    const stored = localStorage.getItem('cart');
+    const stored = localStorage.getItem(getCartKey(user?.id));
     if (stored) {
       try {
         setCart(JSON.parse(stored));
@@ -35,7 +37,7 @@ const Entrega: React.FC = () => {
         setCart([]);
       }
     }
-  }, []);
+  }, [user?.id]);
 
   const subtotal = cart.reduce((acc, item) => acc + (parseFloat(item.price.replace('R$', '').replace(',', '.')) * item.quantity), 0);
   const total = subtotal + FRETE;
@@ -142,10 +144,12 @@ const Entrega: React.FC = () => {
         </div>
         <Input
           id="cpfCnpj"
-          placeholder="CPF ou CNPJ"
+          placeholder="CPF"
           value={cpfCnpj}
           onChange={e => setCpfCnpj(maskCpf(e.target.value))}
           required
+          maxLength={14}
+          inputMode="numeric"
         />
         <Button type="submit" className="mt-8 mb-4 bg-black text-white focus:ring-black focus:border-black">CONTINUAR</Button>
       </form>

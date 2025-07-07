@@ -3,6 +3,7 @@ import { Header } from '../components/layout/Header';
 import { TrashIcon } from '@heroicons/react/24/outline';
 import { Button } from '../components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useAuth, getCartKey } from '../contexts/AuthContext';
 
 interface CartItem {
   id: string;
@@ -16,10 +17,11 @@ interface CartItem {
 const Carrinho: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     // Busca os produtos do carrinho do localStorage
-    const stored = localStorage.getItem('cart');
+    const stored = localStorage.getItem(getCartKey(user?.id));
     if (stored) {
       try {
         setCart(JSON.parse(stored));
@@ -27,7 +29,7 @@ const Carrinho: React.FC = () => {
         setCart([]);
       }
     }
-  }, []);
+  }, [user?.id]);
 
   // Atualiza quantidade de um item
   const handleQuantityChange = (id: string, newQuantity: number) => {
@@ -36,14 +38,14 @@ const Carrinho: React.FC = () => {
       item.id === id ? { ...item, quantity: newQuantity } : item
     );
     setCart(updatedCart);
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    localStorage.setItem(getCartKey(user?.id), JSON.stringify(updatedCart));
   };
 
   // Remove item do carrinho
   const handleRemove = (id: string) => {
     const updatedCart = cart.filter(item => item.id !== id);
     setCart(updatedCart);
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    localStorage.setItem(getCartKey(user?.id), JSON.stringify(updatedCart));
   };
 
   return (
@@ -93,6 +95,12 @@ const Carrinho: React.FC = () => {
               Prosseguir para compra
             </Button>
           </div>
+          <button
+            className="mt-6 mb-2 px-6 py-3 bg-blue-900 text-white rounded-full font-bold text-lg w-full hover:bg-blue-800 transition-colors"
+            onClick={() => navigate('/catalogo')}
+          >
+            Voltar ao Catálogo
+          </button>
           </>
         )}
       </div>

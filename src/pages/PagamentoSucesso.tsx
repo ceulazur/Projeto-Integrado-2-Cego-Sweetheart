@@ -3,6 +3,7 @@ import { Header } from '../components/layout/Header';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { useNavigate } from 'react-router-dom';
+import { useAuth, getCartKey } from '../contexts/AuthContext';
 
 const FRETE = 52.72;
 
@@ -18,10 +19,22 @@ interface CartItem {
 const PagamentoSucesso: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [orderTotal, setOrderTotal] = useState<{subtotal:number, frete:number, total:number}|null>(null);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'auto' });
-    const stored = localStorage.getItem('cart');
+    if (user?.id) {
+      const lastOrder = localStorage.getItem(`lastOrderTotal_${user.id}`);
+      if (lastOrder) {
+        try {
+          setOrderTotal(JSON.parse(lastOrder));
+        } catch {
+          setOrderTotal(null);
+        }
+      }
+    }
+    const stored = localStorage.getItem(getCartKey(user?.id));
     if (stored) {
       try {
         setCart(JSON.parse(stored));
@@ -29,7 +42,7 @@ const PagamentoSucesso: React.FC = () => {
         setCart([]);
       }
     }
-  }, []);
+  }, [user?.id]);
 
   const subtotal = cart.reduce((acc, item) => acc + (parseFloat(item.price.replace('R$', '').replace(',', '.')) * item.quantity), 0);
   const total = subtotal + FRETE;
@@ -74,15 +87,15 @@ const PagamentoSucesso: React.FC = () => {
           )}
           <div className="flex justify-between mb-2.5">
             <span>Subtotal</span>
-            <span>R$ {subtotal.toFixed(2).replace('.', ',')}</span>
+            <span>R$ {orderTotal ? orderTotal.subtotal.toFixed(2).replace('.', ',') : subtotal.toFixed(2).replace('.', ',')}</span>
           </div>
           <div className="flex justify-between mb-5">
             <span>Custo de frete</span>
-            <span>R$ {FRETE.toFixed(2).replace('.', ',')}</span>
+            <span>R$ {orderTotal ? orderTotal.frete.toFixed(2).replace('.', ',') : FRETE.toFixed(2).replace('.', ',')}</span>
           </div>
           <div className="flex justify-between pt-2.5 text-lg font-semibold border-t border-solid border-t-black border-t-opacity-20">
             <span>Total</span>
-            <span>R$ {total.toFixed(2).replace('.', ',')}</span>
+            <span>R$ {orderTotal ? orderTotal.total.toFixed(2).replace('.', ',') : (subtotal + FRETE).toFixed(2).replace('.', ',')}</span>
           </div>
         </Card>
         <section className="text-4xl font-bold mb-10 text-black">

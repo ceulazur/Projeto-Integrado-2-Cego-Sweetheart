@@ -12,12 +12,14 @@ import { AddToCartButton } from '../components/sections/AddToCartButton';
 import { useProduct, Product } from '../hooks/useProducts';
 import { useContext } from 'react';
 import { UserContext } from '../contexts/UserContext';
+import { useAuth, getCartKey } from '../contexts/AuthContext';
 
 export const VerProduto: React.FC = () => {
   const [selectedSize, setSelectedSize] = useState('P');
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { usuario } = useContext(UserContext);
+  const { user } = useAuth();
 
   // Busca os dados do produto pelo ID da URL
   const { data: productData, isLoading, error } = useProduct(id || '');
@@ -29,7 +31,7 @@ export const VerProduto: React.FC = () => {
   const handleAddToCart = () => {
     if (!productData) return;
     // Busca o carrinho atual
-    const stored = localStorage.getItem('cart');
+    const stored = localStorage.getItem(getCartKey(user?.id));
     type CartItem = {
       id: string;
       title: string;
@@ -60,7 +62,7 @@ export const VerProduto: React.FC = () => {
       console.log('Adicionando ao carrinho:', item);
       cart.push(item);
         }
-    localStorage.setItem('cart', JSON.stringify(cart));
+    localStorage.setItem(getCartKey(user?.id), JSON.stringify(cart));
     navigate('/carrinho');
   };
 

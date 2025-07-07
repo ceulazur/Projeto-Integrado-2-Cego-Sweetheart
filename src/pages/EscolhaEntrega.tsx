@@ -3,6 +3,7 @@ import { Header } from '../components/layout/Header';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useAuth, getCartKey } from '../contexts/AuthContext';
 
 const deliveryOptions = [
   {
@@ -38,9 +39,10 @@ const EscolhaEntrega: React.FC = () => {
   const [selected, setSelected] = useState('sedex');
   const [cart, setCart] = useState<CartItem[]>([]);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
-    const stored = localStorage.getItem('cart');
+    const stored = localStorage.getItem(getCartKey(user?.id));
     if (stored) {
       try {
         setCart(JSON.parse(stored));
@@ -48,7 +50,7 @@ const EscolhaEntrega: React.FC = () => {
         setCart([]);
       }
     }
-  }, []);
+  }, [user?.id]);
 
   const selectedOption = deliveryOptions.find(opt => opt.id === selected) || deliveryOptions[0];
   const frete = selectedOption.price;

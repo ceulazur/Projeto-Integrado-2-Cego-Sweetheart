@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Header } from '../components/layout/Header';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import { useAuth, getCartKey } from '../contexts/AuthContext';
 
 interface CartItem {
   id: string;
@@ -29,7 +30,6 @@ const paymentMethods = [
     id: 'credit-card',
     icon: 'https://cdn.builder.io/api/v1/image/assets/c9e61df7bfe543a0b7e24feda3172117/afa9c7a4f3b4bc7e5964b4e96820b5c8653f4624?placeholderIfAbsent=true',
     title: 'Cartão De Credito',
-    discount: '5% de desconto',
   },
 ];
 
@@ -39,9 +39,10 @@ const Pagamento: React.FC = () => {
   const [selected, setSelected] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [frete, setFrete] = useState(DEFAULT_FRETE);
+  const { user } = useAuth();
 
   useEffect(() => {
-    const stored = localStorage.getItem('cart');
+    const stored = localStorage.getItem(getCartKey(user?.id));
     if (stored) {
       try {
         setCart(JSON.parse(stored));
@@ -55,16 +56,27 @@ const Pagamento: React.FC = () => {
     } else {
       setFrete(DEFAULT_FRETE);
     }
-  }, []);
+  }, [user?.id]);
 
   const subtotal = cart.reduce((acc, item) => acc + (parseFloat(item.price.replace('R$', '').replace(',', '.')) * item.quantity), 0);
   const total = subtotal + frete;
+
+  // Cálculo do desconto conforme método selecionado
+  let descontoPercent = 0;
+  if (selected === 'boleto') descontoPercent = 5;
+  if (selected === 'pix') descontoPercent = 3;
+  const descontoValor = ((subtotal + frete) * descontoPercent) / 100;
+  const totalComDesconto = (subtotal + frete) - descontoValor;
 
   function handleFinish(e: React.FormEvent) {
     e.preventDefault();
     if (!selected) return;
     if (selected === 'credit-card') {
       window.location.href = '/pagamento-cartao';
+      return;
+    }
+    if (selected === 'pix') {
+      window.location.href = '/pagamento-pix';
       return;
     }
     // Aqui pode ser feita a lógica de finalização
@@ -110,8 +122,8 @@ const Pagamento: React.FC = () => {
                     <div className="text-2xl font-semibold">
                       {method.title}
                     </div>
-                    <div className="text-xl font-normal z-10 mt-[-5px]">
-                      {method.discount}
+                    <div className="text-xl font-normal z-10 mt-[-5px] min-h-[28px]">
+                      {method.discount || <span className="invisible">placeholder</span>}
                     </div>
                   </div>
                 </div>
@@ -146,9 +158,15 @@ const Pagamento: React.FC = () => {
             <span>Custo de frete</span>
             <span>R$ {frete.toFixed(2).replace('.', ',')}</span>
           </div>
+          {descontoPercent > 0 && (
+            <div className="flex justify-between mb-5 font-semibold">
+              <span>Desconto ({descontoPercent}%)</span>
+              <span>-R$ {descontoValor.toFixed(2).replace('.', ',')}</span>
+            </div>
+          )}
           <div className="flex justify-between pt-2.5 text-lg font-semibold border-t border-solid border-t-black border-t-opacity-20">
             <span>Total</span>
-            <span>R$ {total.toFixed(2).replace('.', ',')}</span>
+            <span>R$ {totalComDesconto.toFixed(2).replace('.', ',')}</span>
           </div>
         </Card>
         <Button
@@ -157,7 +175,7 @@ const Pagamento: React.FC = () => {
           disabled={!selected}
           onClick={handleFinish}
         >
-          FINALIZAR COMPRA
+          CONTINUAR PAGAMENTO
         </Button>
       </div>
     </main>

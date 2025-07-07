@@ -3,6 +3,8 @@ import { Header } from '../components/layout/Header';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useUpdateProduct, useProducts } from '../hooks/useProducts';
+import { useAuth, getCartKey } from '../contexts/AuthContext';
 
 const DEFAULT_FRETE = 52.72;
 
@@ -24,9 +26,12 @@ const PagamentoCartao: React.FC = () => {
   const [cvv, setCvv] = useState('');
   const [cpf, setCpf] = useState('');
   const navigate = useNavigate();
+  const updateProduct = useUpdateProduct();
+  const { data: allProducts } = useProducts();
+  const { user } = useAuth();
 
   useEffect(() => {
-    const stored = localStorage.getItem('cart');
+    const stored = localStorage.getItem(getCartKey(user?.id));
     if (stored) {
       try {
         setCart(JSON.parse(stored));
@@ -40,7 +45,7 @@ const PagamentoCartao: React.FC = () => {
     } else {
       setFrete(DEFAULT_FRETE);
     }
-  }, []);
+  }, [user?.id]);
 
   const subtotal = cart.reduce((acc, item) => acc + (parseFloat(item.price.replace('R$', '').replace(',', '.')) * item.quantity), 0);
   const total = subtotal + frete;
@@ -66,10 +71,25 @@ const PagamentoCartao: React.FC = () => {
 
   const isFormValid = nome && numero.length === 19 && validade.length === 5 && cvv.length >= 3 && cpf.length === 14;
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!isFormValid) return;
-    // Aqui pode ser feita a lógica de finalização
+    // Descontar estoque dos produtos do carrinho
+    for (const item of cart) {
+      const produtoAtual = allProducts?.find(p => p.id === item.id);
+      if (produtoAtual) {
+        await updateProduct.mutateAsync({
+          ...produtoAtual,
+          quantity: Math.max(0, produtoAtual.quantity - item.quantity),
+        });
+      }
+    }
+    // Salvar o valor total do pedido para exibir na tela de sucesso
+    if (user?.id) {
+      localStorage.setItem(`lastOrderTotal_${user.id}`, JSON.stringify({ subtotal, frete, total }));
+    }
+    // Limpar o carrinho do usuário após finalizar a compra
+    localStorage.removeItem(getCartKey(user?.id));
     navigate('/pagamento-sucesso');
   }
 

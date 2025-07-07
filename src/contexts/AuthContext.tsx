@@ -33,6 +33,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = () => {
+    if (user) {
+      localStorage.removeItem(getCartKey(user.id));
+    }
     setUser(null);
     // Limpa o usuário do localStorage ao fazer logout
     localStorage.removeItem('admin-user');
@@ -54,4 +57,8 @@ export function useAuth() {
     throw new Error('useAuth deve ser usado dentro de um AuthProvider');
   }
   return context;
+}
+
+export function getCartKey(userId: number | string | undefined | null) {
+  return userId ? `cart_${userId}` : 'cart';
 } 

@@ -16,6 +16,7 @@ import Pagamento from "./pages/Pagamento";
 import EscolhaEntrega from "./pages/EscolhaEntrega";
 import PagamentoSucesso from "./pages/PagamentoSucesso";
 import PagamentoCartao from "./pages/PagamentoCartao";
+import PagamentoPix from "./pages/PagamentoPix";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { UserProvider } from "./contexts/UserContext";
 import { FilterProvider } from "./contexts/FilterContext";
@@ -70,6 +71,7 @@ const App = () => (
                   <Route path="/escolha-entrega" element={<EscolhaEntrega />} />
                   <Route path="/pagamento-sucesso" element={<PagamentoSucesso />} />
                   <Route path="/pagamento-cartao" element={<PagamentoCartao />} />
+                  <Route path="/pagamento-pix" element={<PagamentoPix />} />
                   
                   {/* Login admin */}
                   <Route path="/admin/login" element={<AdminLogin />} />

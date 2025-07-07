@@ -42,7 +42,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       className={`flex flex-col pt-3.5 pb-7 border border-solid border-black border-opacity-60 min-h-[339px] w-[190px] ${shadowClass} ${className} cursor-pointer hover:shadow-lg transition-shadow`}
       onClick={handleProductClick}
     >
-      <h3 className="text-2xl font-medium text-center text-red-600">
+      <h3 className="text-2xl font-medium text-center text-red-600 truncate overflow-hidden whitespace-nowrap max-w-[90%] mx-auto block">
         {title}
       </h3>
       <div className="overflow-hidden self-center mt-2 max-w-full border-2 border-solid border-neutral-600 border-opacity-80 w-[158px]">

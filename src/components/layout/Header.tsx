@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useScrollTop } from '../../hooks/useScrollTop';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth, getCartKey } from '../../contexts/AuthContext';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -37,6 +37,7 @@ export const Header: React.FC = () => {
   const { data: vendors } = useVendors();
   const { data: allProducts } = useProducts();
   const [artistProducts, setArtistProducts] = React.useState<Product[]>([]);
+  const [cartCount, setCartCount] = useState(0);
 
   const handlePedidos = () => {
     navigateAndScroll('/pedidos');
@@ -138,6 +139,26 @@ export const Header: React.FC = () => {
     }
   }, [isDropdownVisible]);
 
+  useEffect(() => {
+    function updateCartCount() {
+      const stored = localStorage.getItem(getCartKey(user?.id));
+      if (stored) {
+        try {
+          const cart = JSON.parse(stored);
+          const count = Array.isArray(cart) ? cart.reduce((acc, item) => acc + (item.quantity || 1), 0) : 0;
+          setCartCount(count);
+        } catch {
+          setCartCount(0);
+        }
+      } else {
+        setCartCount(0);
+      }
+    }
+    updateCartCount();
+    window.addEventListener('storage', updateCartCount);
+    return () => window.removeEventListener('storage', updateCartCount);
+  }, [user]);
+
   return (
     <header className="w-full bg-white">
       <div ref={frameRef} className="max-w-[480px] w-full mx-auto pl-0 pr-8 relative">
@@ -216,12 +237,17 @@ export const Header: React.FC = () => {
         {/* Barra de navegação */}
         <nav className="flex justify-between items-center py-4">
           {/* Ícone do carrinho */}
-          <button className="text-blue-900 -mt-0.5">
+          <button className="relative text-blue-900 -mt-0.5" onClick={() => navigateAndScroll('/carrinho')} aria-label="Carrinho">
             <img
               src="/cart-icon.svg"
               alt="Carrinho"
               className="w-5 h-5"
             />
+            {cartCount > 0 && (
+              <span className="absolute -top-3 -right-4 bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 min-w-[20px] flex items-center justify-center shadow" style={{fontFamily: 'inherit'}}>
+                {cartCount}
+              </span>
+            )}
           </button>
 
           {/* Botão Minha conta com Dropdown */}
