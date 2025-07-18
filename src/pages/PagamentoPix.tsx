@@ -73,23 +73,59 @@ const PagamentoPix: React.FC = () => {
       setTempoRestante(diff);
       if (diff <= 0) {
         clearInterval(interval);
-        // Descontar estoque dos produtos do carrinho
-        for (const item of cart) {
-          const produtoAtual = allProducts?.find(p => p.id === item.id);
-          if (produtoAtual) {
-            await updateProduct.mutateAsync({
-              ...produtoAtual,
-              quantity: Math.max(0, produtoAtual.quantity - item.quantity),
-            });
+        
+        try {
+          // Salvar pedido na API para cada item do carrinho
+          for (const item of cart) {
+            const produtoAtual = allProducts?.find(p => p.id === item.id);
+            if (produtoAtual) {
+              // Criar pedido na API
+              const pedidoData = {
+                clienteNome: `${user?.firstName} ${user?.lastName}`,
+                clienteId: user?.id.toString(),
+                produtoId: item.id,
+                produtoNome: item.title,
+                produtoImageUrl: item.imageUrl,
+                produtoPrice: item.price,
+                quantidade: item.quantity,
+                subtotal: subtotal.toFixed(2),
+                frete: frete.toFixed(2),
+                total: total.toFixed(2),
+                formaPagamento: 'PIX'
+              };
+
+              const response = await fetch('http://localhost:3000/api/pedidos', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(pedidoData),
+              });
+
+              if (!response.ok) {
+                throw new Error('Erro ao criar pedido');
+              }
+
+              // Descontar estoque dos produtos
+              await updateProduct.mutateAsync({
+                ...produtoAtual,
+                quantity: Math.max(0, produtoAtual.quantity - item.quantity),
+              });
+            }
           }
+
+          // Salvar o valor total do pedido para exibir na tela de sucesso
+          if (user?.id) {
+            localStorage.setItem(`lastOrderTotal_${user.id}`, JSON.stringify({ subtotal, frete, total }));
+          }
+          
+          // Limpar o carrinho do usuário após finalizar a compra
+          localStorage.removeItem(getCartKey(user?.id));
+          navigate('/pagamento-sucesso');
+        } catch (error) {
+          console.error('Erro ao finalizar compra:', error);
+          alert('Erro ao finalizar compra. Tente novamente.');
         }
-        // Salvar o valor total do pedido para exibir na tela de sucesso
-        if (user?.id) {
-          localStorage.setItem(`lastOrderTotal_${user.id}`, JSON.stringify({ subtotal, frete, total }));
-        }
-        // Limpar o carrinho do usuário após finalizar a compra
-        localStorage.removeItem(getCartKey(user?.id));
-        navigate('/pagamento-sucesso');
       }
     }, 1000);
     return () => clearInterval(interval);

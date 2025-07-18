@@ -109,12 +109,20 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     clienteNome TEXT,
     clienteId TEXT,
-    status TEXT,
+    status TEXT DEFAULT 'transporte',
+    statusEntrega TEXT DEFAULT 'Em transporte',
     data TEXT,
     produtoId INTEGER,
     produtoNome TEXT,
+    produtoImageUrl TEXT,
+    produtoPrice TEXT,
+    quantidade INTEGER DEFAULT 1,
+    subtotal TEXT,
+    frete TEXT,
+    total TEXT,
     formaPagamento TEXT,
-    codigoRastreio TEXT
+    codigoRastreio TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
   CREATE TABLE IF NOT EXISTS vendors (
@@ -703,35 +711,64 @@ app.get('/api/artists', (_req: Request, res: Response) => {
 // Rota para criar pedido e baixar estoque
 app.post('/api/pedidos', express.json(), (req: Request, res: Response) => {
   try {
-    const { clienteNome, clienteId, produtoId, produtoNome, formaPagamento } = req.body;
+    const { 
+      clienteNome, 
+      clienteId, 
+      produtoId, 
+      produtoNome, 
+      produtoImageUrl,
+      produtoPrice,
+      quantidade,
+      subtotal,
+      frete,
+      total,
+      formaPagamento 
+    } = req.body;
+    
     if (!clienteNome || !clienteId || !produtoId || !produtoNome || !formaPagamento) {
       res.status(400).json({ error: 'Campos obrigatórios faltando' });
       return;
     }
+    
     // Verifica estoque
     const produto = db.prepare('SELECT quantity FROM products WHERE id = ?').get(produtoId);
-    if (!produto || produto.quantity < 1) {
-      res.status(400).json({ error: 'Produto sem estoque' });
+    if (!produto || produto.quantity < quantidade) {
+      res.status(400).json({ error: 'Produto sem estoque suficiente' });
       return;
     }
+    
     // Baixa estoque
-    db.prepare('UPDATE products SET quantity = quantity - 1 WHERE id = ?').run(produtoId);
-    // Cria pedido
+    db.prepare('UPDATE products SET quantity = quantity - ? WHERE id = ?').run(quantidade, produtoId);
+    
+    // Cria pedido com todos os dados
     const stmt = db.prepare(`
-      INSERT INTO pedidos (clienteNome, clienteId, status, data, produtoId, produtoNome, formaPagamento, codigoRastreio)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO pedidos (
+        clienteNome, clienteId, status, statusEntrega, data, produtoId, produtoNome, 
+        produtoImageUrl, produtoPrice, quantidade, subtotal, frete, total, 
+        formaPagamento, codigoRastreio
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
+    
     const dataAtual = new Date().toISOString().slice(0, 10);
     stmt.run(
       clienteNome,
       clienteId,
-      'Em aberto',
+      'transporte',
+      'Em transporte',
       dataAtual,
       produtoId,
       produtoNome,
+      produtoImageUrl || '',
+      produtoPrice || '',
+      quantidade || 1,
+      subtotal || '',
+      frete || '',
+      total || '',
       formaPagamento,
       ''
     );
+    
     res.status(201).json({ message: 'Pedido criado com sucesso' });
   } catch (error) {
     console.error('Erro ao criar pedido:', error);
@@ -785,6 +822,29 @@ app.put('/api/pedidos/:id', express.json(), (req: Request, res: Response) => {
     }
   } catch (error) {
     console.error('Erro ao atualizar pedido:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Rota para buscar pedidos por cliente
+app.get('/api/pedidos/cliente/:clienteId', (req: Request, res: Response) => {
+  try {
+    const { clienteId } = req.params;
+    
+    const pedidos = db.prepare(`
+      SELECT 
+        id, clienteNome, clienteId, status, statusEntrega, data, 
+        produtoId, produtoNome, produtoImageUrl, produtoPrice, 
+        quantidade, subtotal, frete, total, formaPagamento, 
+        codigoRastreio, created_at
+      FROM pedidos 
+      WHERE clienteId = ? 
+      ORDER BY created_at DESC
+    `).all(clienteId);
+    
+    res.json(pedidos);
+  } catch (error) {
+    console.error('Erro ao buscar pedidos do cliente:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });

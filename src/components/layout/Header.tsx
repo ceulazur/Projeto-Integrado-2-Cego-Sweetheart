@@ -40,7 +40,7 @@ export const Header: React.FC = () => {
   const [cartCount, setCartCount] = useState(0);
 
   const handlePedidos = () => {
-    navigateAndScroll('/pedidos');
+    navigateAndScroll('/historico-pedidos');
   };
 
   const handleLogout = () => {

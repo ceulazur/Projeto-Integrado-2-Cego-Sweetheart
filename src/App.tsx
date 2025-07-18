@@ -29,6 +29,7 @@ import AdminPedidos from "./pages/admin/Pedidos";
 import AdminPerfil from "./pages/admin/Perfil";
 import AdminLogin from "./pages/admin/AdminLogin";
 import CadastrarVendedor from "./pages/admin/CadastrarVendedor";
+import HistoricoPedidos from "./pages/HistoricoPedidos";
 
 const RequireAdminAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, user } = useAuth();
@@ -72,6 +73,7 @@ const App = () => (
                   <Route path="/pagamento-sucesso" element={<PagamentoSucesso />} />
                   <Route path="/pagamento-cartao" element={<PagamentoCartao />} />
                   <Route path="/pagamento-pix" element={<PagamentoPix />} />
+                  <Route path="/historico-pedidos" element={<HistoricoPedidos />} />
                   
                   {/* Login admin */}
                   <Route path="/admin/login" element={<AdminLogin />} />
