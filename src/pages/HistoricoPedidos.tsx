@@ -21,7 +21,159 @@ interface Order {
   formaPagamento: string;
   codigoRastreio: string;
   created_at: string;
+  data_pedido: string;
 }
+
+// Modal de detalhes do pedido para o cliente
+const OrderDetailsModal: React.FC<{
+  order: Order | null;
+  isOpen: boolean;
+  onClose: () => void;
+}> = ({ order, isOpen, onClose }) => {
+  if (!isOpen || !order) return null;
+
+  const getStatusInfo = (status: string) => {
+    switch (status) {
+      case 'entregue':
+        return { color: 'bg-green-500', text: 'Entregue', bgColor: 'bg-green-50', borderColor: 'border-green-200' };
+      case 'transporte':
+        return { color: 'bg-yellow-400', text: 'Em transporte', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200' };
+      default:
+        return { color: 'bg-red-500', text: 'Devolvido/Reembolsado', bgColor: 'bg-red-50', borderColor: 'border-red-200' };
+    }
+  };
+
+  // Função para tratar datas inválidas
+  const formatOrderDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      // Verifica se a data é válida (não é 1969 ou antes)
+      if (date.getFullYear() < 1970) {
+        return new Date().toLocaleDateString('pt-BR');
+      }
+      return date.toLocaleDateString('pt-BR');
+    } catch (error) {
+      return new Date().toLocaleDateString('pt-BR');
+    }
+  };
+
+  const statusInfo = getStatusInfo(order.status);
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        {/* Header do Modal */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-xl">
+          <div className="flex justify-between items-start">
+            <div>
+              <h2 className="text-xl font-bold">Detalhes do Pedido</h2>
+              <p className="text-blue-100 text-sm">#{order.id}</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-white hover:text-gray-200 transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6">
+          {/* Status do Pedido */}
+          <div className={`${statusInfo.bgColor} ${statusInfo.borderColor} border rounded-lg p-4 mb-6`}>
+            <div className="flex items-center gap-3">
+              <div className={`w-4 h-4 rounded-full ${statusInfo.color}`}></div>
+              <div>
+                <h3 className="font-semibold text-gray-800">Status do Pedido</h3>
+                <p className="text-gray-600">{statusInfo.text}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Informações do Produto */}
+          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+            <h3 className="font-semibold text-gray-800 mb-3">Produto</h3>
+            <div className="flex items-center gap-4">
+              <img
+                src={order.produtoImageUrl || '/placeholder.svg'}
+                alt={order.produtoNome}
+                className="w-16 h-16 object-cover rounded-lg shadow-sm"
+              />
+              <div className="flex-1">
+                <h4 className="font-medium text-gray-900">{order.produtoNome}</h4>
+                <p className="text-sm text-gray-600">Quantidade: {order.quantidade}</p>
+                <p className="text-sm text-gray-600">Preço unitário: {order.produtoPrice}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Informações de Entrega */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <h3 className="font-semibold text-gray-800 mb-3">Informações de Entrega</h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Data do pedido:</span>
+                <span className="font-medium">{formatOrderDate(order.data_pedido || order.created_at)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Forma de pagamento:</span>
+                <span className="font-medium">{order.formaPagamento}</span>
+              </div>
+              {order.codigoRastreio && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Código de rastreio:</span>
+                  <span className="font-medium text-blue-600">{order.codigoRastreio}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Resumo Financeiro */}
+          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+            <h3 className="font-semibold text-gray-800 mb-3">Resumo Financeiro</h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Subtotal:</span>
+                <span>{order.subtotal}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Frete:</span>
+                <span>{order.frete}</span>
+              </div>
+              <div className="flex justify-between pt-2 border-t border-gray-200">
+                <span className="font-semibold text-gray-800">Total:</span>
+                <span className="font-semibold text-gray-900">{order.total}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Ações */}
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="flex-1 bg-gray-200 text-gray-800 py-3 px-4 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+            >
+              Fechar
+            </button>
+            {order.codigoRastreio && (
+              <button
+                onClick={() => {
+                  // Aqui você pode implementar a lógica para rastrear o pedido
+                  window.open(`https://rastreamento.correios.com.br/app/index.php?objeto=${order.codigoRastreio}`, '_blank');
+                }}
+                className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              >
+                Rastrear Pedido
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Componente de filtro simplificado
 const SimpleFilterButton: React.FC<{ value: string; onChange: (value: string) => void }> = ({ value, onChange }) => {
@@ -118,6 +270,8 @@ const HistoricoPedidos: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (!user?.id) {
@@ -150,9 +304,9 @@ const HistoricoPedidos: React.FC = () => {
     // Implementar lógica de rastreamento
   };
 
-  const handleViewDetails = (orderId: string) => {
-    console.log(`Ver detalhes do pedido ${orderId}`);
-    // Implementar lógica de visualização de detalhes
+  const handleViewDetails = (order: Order) => {
+    setSelectedOrder(order);
+    setIsModalOpen(true);
   };
 
   const handleRequestRefund = (orderId: string) => {
@@ -226,7 +380,7 @@ const HistoricoPedidos: React.FC = () => {
                   quantity={order.quantidade}
                   status={order.status}
                   onTrackOrder={() => handleTrackOrder(order.id)}
-                  onViewDetails={() => handleViewDetails(order.id)}
+                  onViewDetails={() => handleViewDetails(order)}
                   onRequestRefund={() => handleRequestRefund(order.id)}
                 />
               ))}
@@ -234,6 +388,16 @@ const HistoricoPedidos: React.FC = () => {
           )}
         </section>
       </div>
+
+      {/* Modal de Detalhes */}
+      <OrderDetailsModal
+        order={selectedOrder}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedOrder(null);
+        }}
+      />
     </main>
   );
 };

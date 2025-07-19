@@ -740,23 +740,21 @@ app.post('/api/pedidos', express.json(), (req: Request, res: Response) => {
     // Baixa estoque
     db.prepare('UPDATE products SET quantity = quantity - ? WHERE id = ?').run(quantidade, produtoId);
     
-    // Cria pedido com todos os dados
+    // Cria pedido com todos os dados - removendo o campo 'data' e deixando created_at ser preenchido automaticamente
     const stmt = db.prepare(`
       INSERT INTO pedidos (
-        clienteNome, clienteId, status, statusEntrega, data, produtoId, produtoNome, 
+        clienteNome, clienteId, status, statusEntrega, produtoId, produtoNome, 
         produtoImageUrl, produtoPrice, quantidade, subtotal, frete, total, 
         formaPagamento, codigoRastreio
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     
-    const dataAtual = new Date().toISOString().slice(0, 10);
     stmt.run(
       clienteNome,
       clienteId,
       'transporte',
       'Em transporte',
-      dataAtual,
       produtoId,
       produtoNome,
       produtoImageUrl || '',
@@ -833,10 +831,15 @@ app.get('/api/pedidos/cliente/:clienteId', (req: Request, res: Response) => {
     
     const pedidos = db.prepare(`
       SELECT 
-        id, clienteNome, clienteId, status, statusEntrega, data, 
+        id, clienteNome, clienteId, status, statusEntrega, 
         produtoId, produtoNome, produtoImageUrl, produtoPrice, 
         quantidade, subtotal, frete, total, formaPagamento, 
-        codigoRastreio, created_at
+        codigoRastreio, created_at,
+        CASE 
+          WHEN created_at IS NOT NULL AND created_at != '' AND created_at != 'NULL' AND datetime(created_at) IS NOT NULL
+          THEN created_at 
+          ELSE datetime('now') 
+        END as data_pedido
       FROM pedidos 
       WHERE clienteId = ? 
       ORDER BY created_at DESC
