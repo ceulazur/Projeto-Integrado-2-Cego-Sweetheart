@@ -48,7 +48,18 @@ const RequireAdminAuth: React.FC<{ children: React.ReactNode }> = ({ children })
   return <>{children}</>;
 };
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      retryDelay: 1000,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

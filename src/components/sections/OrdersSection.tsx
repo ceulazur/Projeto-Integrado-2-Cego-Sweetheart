@@ -7,24 +7,28 @@ export const OrdersSection: React.FC = () => {
   const [filter, setFilter] = useState("");
   const { data: orders = [], isLoading, error } = useOrders();
 
+  console.log('OrdersSection renderizando:', { isLoading, error, ordersCount: orders.length });
+
   const handleFilterOrders = () => {
-    console.log('Filtering orders...');
+    // Lógica de filtro, se necessário
   };
 
   const handleTrackOrder = (orderId: string) => {
-    console.log(`Tracking order: ${orderId}`);
+    console.log(`Rastrear pedido ${orderId}`);
+    // Implementar lógica de rastreamento
   };
 
   const handleViewDetails = (orderId: string) => {
-    console.log(`Viewing details for order: ${orderId}`);
+    console.log(`Ver detalhes do pedido ${orderId}`);
+    // Implementar lógica de visualização de detalhes
   };
 
   const handleRequestRefund = (orderId: string) => {
-    console.log(`Requesting refund for order: ${orderId}`);
+    console.log(`Pedir reembolso para o pedido ${orderId}`);
+    // Implementar lógica de pedido de reembolso
   };
 
-  // Filtrar pedidos baseado no texto de busca
-  const filteredOrders = orders.filter(order => 
+  const filteredOrders = orders.filter(order =>
     order.produtoNome.toLowerCase().includes(filter.toLowerCase())
   );
 
@@ -45,6 +49,7 @@ export const OrdersSection: React.FC = () => {
         <section className="flex flex-col text-[rgba(250,0,0,1)] text-center">
           <h1 className="text-4xl font-extrabold">SEUS PEDIDOS</h1>
           <p className="text-[15px] font-normal mt-2.5 text-red-600">Erro ao carregar pedidos</p>
+          <p className="text-[12px] text-gray-500 mt-2">Detalhes do erro: {error.message}</p>
         </section>
       </main>
     );

@@ -23,18 +23,15 @@ interface Order {
 
 export const useOrders = () => {
   const { user } = useAuth();
-
+  
+  console.log('useOrders hook:', { userId: user?.id, user });
+  
   return useQuery({
     queryKey: ['orders', user?.id],
     queryFn: async (): Promise<Order[]> => {
-      if (!user?.id) {
-        return [];
-      }
-
+      if (!user?.id) { return []; }
       const response = await fetch(`http://localhost:3000/api/pedidos/cliente/${user.id}`);
-      if (!response.ok) {
-        throw new Error('Erro ao buscar pedidos');
-      }
+      if (!response.ok) { throw new Error('Erro ao buscar pedidos'); }
       return response.json();
     },
     enabled: !!user?.id,

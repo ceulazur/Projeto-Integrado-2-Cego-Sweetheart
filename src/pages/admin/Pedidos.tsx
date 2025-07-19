@@ -16,6 +16,11 @@ type Pedido = {
   formaPagamento: string;
   codigoRastreio?: string;
   artistHandle?: string; // Adicionado para mostrar o vendedor
+  produtoPrice?: string;
+  quantidade?: number;
+  subtotal?: string;
+  frete?: string;
+  total?: string;
 };
 
 const statusColors: Record<PedidoStatus, string> = {
@@ -33,6 +38,28 @@ const Pedidos = () => {
   const [pedidoSelecionado, setPedidoSelecionado] = useState<Pedido | null>(null);
   const [codigoRastreio, setCodigoRastreio] = useState("");
   const [statusSelecionado, setStatusSelecionado] = useState<PedidoStatus>("Em aberto");
+  const [filtroStatus, setFiltroStatus] = useState<string>("todos");
+
+  // Função para formatar valores monetários
+  const formatarValor = (valor: string | undefined): string => {
+    if (!valor) return 'R$ 0,00';
+    try {
+      const numero = parseFloat(valor.replace('R$ ', '').replace(',', '.'));
+      return `R$ ${numero.toFixed(2).replace('.', ',')}`;
+    } catch {
+      return valor;
+    }
+  };
+
+  // Função para extrair valor numérico
+  const extrairValor = (valor: string | undefined): number => {
+    if (!valor) return 0;
+    try {
+      return parseFloat(valor.replace('R$ ', '').replace(',', '.'));
+    } catch {
+      return 0;
+    }
+  };
 
   // Identificação de admin e vendedor
   const isAdmin = usuario && (usuario.nome === "admin" || usuario.email === "admin");
@@ -107,21 +134,80 @@ const Pedidos = () => {
     }
   };
 
+  // Calcular totais financeiros (apenas preço do produto, sem frete)
+  const totalRecebido = pedidos
+    .filter(pedido => pedido.status !== 'Cancelado' && pedido.subtotal)
+    .reduce((sum, pedido) => sum + extrairValor(pedido.subtotal), 0);
+
+  const totalReembolsado = pedidos
+    .filter(pedido => pedido.status === 'Cancelado' && pedido.subtotal)
+    .reduce((sum, pedido) => sum + extrairValor(pedido.subtotal), 0);
+
+  const saldoLiquido = totalRecebido - totalReembolsado;
+
+  // Filtrar pedidos por status
+  const pedidosFiltrados = filtroStatus === "todos" 
+    ? pedidos 
+    : pedidos.filter(pedido => pedido.status === filtroStatus);
+
   return (
     <div className="p-8 pt-24">
       <h1 className="text-2xl font-bold mb-6">Pedidos</h1>
       
-      {pedidos.length === 0 ? (
-        <div className="text-center py-12">
-          <h3 className="text-lg font-semibold">Nenhum pedido encontrado</h3>
-          <p className="text-gray-500">
-            {isAdmin 
-              ? "Não há pedidos registrados no sistema." 
-              : "Você ainda não recebeu nenhum pedido dos seus produtos."
-            }
+      {/* Resumo Financeiro */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <h3 className="text-sm font-medium text-green-800">Total Recebido</h3>
+          <p className="text-2xl font-bold text-green-600">R$ {totalRecebido.toFixed(2).replace('.', ',')}</p>
+        </div>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <h3 className="text-sm font-medium text-red-800">Total Reembolsado</h3>
+          <p className="text-2xl font-bold text-red-600">R$ {totalReembolsado.toFixed(2).replace('.', ',')}</p>
+        </div>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h3 className="text-sm font-medium text-blue-800">Saldo Líquido</h3>
+          <p className={`text-2xl font-bold ${saldoLiquido >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+            R$ {saldoLiquido.toFixed(2).replace('.', ',')}
           </p>
         </div>
-      ) : (
+              </div>
+        
+        {/* Filtro de Status */}
+        <div className="mb-4 flex justify-between items-center">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Filtrar por Status:
+            </label>
+            <select
+              value={filtroStatus}
+              onChange={(e) => setFiltroStatus(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-2 bg-white"
+            >
+              <option value="todos">Todos os Pedidos</option>
+              <option value="Em aberto">Em Aberto</option>
+              <option value="Enviado">Enviado</option>
+              <option value="Concluído">Concluído</option>
+              <option value="Cancelado">Cancelado (Reembolsos)</option>
+            </select>
+          </div>
+          <div className="text-sm text-gray-600">
+            Mostrando {pedidosFiltrados.length} de {pedidos.length} pedidos
+          </div>
+        </div>
+        
+                {pedidosFiltrados.length === 0 ? (
+          <div className="text-center py-12">
+            <h3 className="text-lg font-semibold">Nenhum pedido encontrado</h3>
+            <p className="text-gray-500">
+              {filtroStatus === "todos"
+                ? (isAdmin 
+                    ? "Não há pedidos registrados no sistema." 
+                    : "Você ainda não recebeu nenhum pedido dos seus produtos.")
+                : `Não há pedidos com status "${filtroStatus}" encontrados.`
+              }
+            </p>
+          </div>
+        ) : (
         <table className="w-full border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gray-100">
@@ -131,12 +217,15 @@ const Pedidos = () => {
               {isAdmin && (
                 <th className="border border-gray-300 p-2 text-left">Vendedor</th>
               )}
+              <th className="border border-gray-300 p-2 text-left">Produto</th>
               <th className="border border-gray-300 p-2 text-left">Status</th>
               <th className="border border-gray-300 p-2 text-left">Data</th>
+              <th className="border border-gray-300 p-2 text-left">Valor Recebido</th>
+              <th className="border border-gray-300 p-2 text-left">Valor Reembolsado</th>
             </tr>
           </thead>
           <tbody>
-            {pedidos.map((pedido) => (
+            {pedidosFiltrados.map((pedido) => (
               <tr
                 key={pedido.id}
                 className="hover:bg-gray-50 cursor-pointer"
@@ -148,10 +237,17 @@ const Pedidos = () => {
                 {isAdmin && (
                   <td className="border border-gray-300 p-2">{pedido.artistHandle}</td>
                 )}
+                <td className="border border-gray-300 p-2">{pedido.produtoNome}</td>
                 <td className={`border border-gray-300 p-2 ${statusColors[pedido.status]}`}>
                   {pedido.status}
                 </td>
                 <td className="border border-gray-300 p-2">{pedido.data}</td>
+                <td className="border border-gray-300 p-2 font-semibold text-green-600">
+                  {formatarValor(pedido.subtotal)}
+                </td>
+                <td className="border border-gray-300 p-2 font-semibold text-red-600">
+                  {pedido.status === 'Cancelado' ? formatarValor(pedido.subtotal) : 'R$ 0,00'}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -172,6 +268,26 @@ const Pedidos = () => {
 
             <p><strong>Produto:</strong> {pedidoSelecionado.produtoNome} (ID: {pedidoSelecionado.produtoId})</p>
             <p><strong>Forma de pagamento:</strong> {pedidoSelecionado.formaPagamento}</p>
+            
+            {/* Informações Financeiras */}
+            <div className="mt-4 p-3 bg-gray-50 rounded">
+              <h3 className="font-semibold mb-2">Informações Financeiras</h3>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <p><strong>Preço unitário:</strong> 
+                  <span className="text-green-600 font-semibold ml-1">
+                    {formatarValor(pedidoSelecionado.produtoPrice)}
+                  </span>
+                </p>
+                <p><strong>Quantidade:</strong> {pedidoSelecionado.quantidade || 1}</p>
+                <p><strong>Subtotal:</strong> {formatarValor(pedidoSelecionado.subtotal)}</p>
+                <p><strong>Frete:</strong> {formatarValor(pedidoSelecionado.frete)}</p>
+                <p className="col-span-2"><strong>Total:</strong> 
+                  <span className="font-semibold ml-1">
+                    {formatarValor(pedidoSelecionado.total)}
+                  </span>
+                </p>
+              </div>
+            </div>
 
             <div className="mt-4">
               <label className="block font-semibold mb-1" htmlFor="codigoRastreio">
