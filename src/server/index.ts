@@ -156,6 +156,7 @@ db.exec(`
     dataSolicitacao DATETIME DEFAULT CURRENT_TIMESTAMP,
     dataResposta DATETIME,
     valorReembolso TEXT NOT NULL,
+    artistHandle TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `);
@@ -842,8 +843,24 @@ app.put('/api/pedidos/:id', express.json(), (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { status, codigoRastreio } = req.body;
-    const stmt = db.prepare('UPDATE pedidos SET status = ?, codigoRastreio = ? WHERE id = ?');
-    const result = stmt.run(status, codigoRastreio, id);
+    // Mapear status para statusEntrega
+    let statusEntrega = '';
+    switch (status) {
+      case 'transporte':
+        statusEntrega = 'Em transporte';
+        break;
+      case 'entregue':
+        statusEntrega = 'Entregue';
+        break;
+      case 'reembolsado':
+        statusEntrega = 'Reembolsado';
+        break;
+      default:
+        statusEntrega = status;
+    }
+    
+    const stmt = db.prepare('UPDATE pedidos SET status = ?, statusEntrega = ?, codigoRastreio = ? WHERE id = ?');
+    const result = stmt.run(status, statusEntrega, codigoRastreio, id);
     if (result.changes === 0) {
       res.status(404).json({ error: 'Pedido não encontrado' });
     } else {
@@ -932,6 +949,52 @@ app.get('/api/vendors/:id', (req: Request, res: Response) => {
   }
 });
 
+// Endpoint para deletar vendedor
+app.delete('/api/vendors/:id', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // Verificar se o vendedor existe
+    const vendor = db.prepare('SELECT * FROM vendors WHERE id = ?').get(id);
+    if (!vendor) {
+      return res.status(404).json({ error: 'Vendedor não encontrado' });
+    }
+    
+    // Verificar se o vendedor tem produtos
+    const produtos = db.prepare('SELECT COUNT(*) as count FROM products WHERE artistHandle = ?').get(vendor.handle);
+    if (produtos.count > 0) {
+      return res.status(400).json({ 
+        error: 'Não é possível excluir o vendedor pois ele possui produtos cadastrados' 
+      });
+    }
+    
+    // Verificar se o vendedor tem pedidos
+    const pedidos = db.prepare(`
+      SELECT COUNT(*) as count FROM pedidos p 
+      JOIN products pr ON p.produtoId = pr.id 
+      WHERE pr.artistHandle = ?
+    `).get(vendor.handle);
+    if (pedidos.count > 0) {
+      return res.status(400).json({ 
+        error: 'Não é possível excluir o vendedor pois ele possui pedidos' 
+      });
+    }
+    
+    // Deletar o vendedor
+    const stmt = db.prepare('DELETE FROM vendors WHERE id = ?');
+    const result = stmt.run(id);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Vendedor não encontrado' });
+    }
+
+    res.json({ message: 'Vendedor excluído com sucesso' });
+  } catch (error) {
+    console.error('Erro ao deletar vendedor:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
 // Rota para criar reembolso
 app.post('/api/reembolsos', (req: Request, res: Response) => {
   try {
@@ -1014,7 +1077,8 @@ app.post('/api/reembolsos', (req: Request, res: Response) => {
       conta,
       tipoConta,
       fotoUrl,
-      valorReembolso
+      valorReembolso,
+      artistHandle
     } = req.body;
 
     if (!orderId || !clienteNome || !clienteId || !produtoNome || !motivo || !descricao || !banco || !agencia || !conta || !tipoConta || !valorReembolso) {
@@ -1024,8 +1088,8 @@ app.post('/api/reembolsos', (req: Request, res: Response) => {
     const stmt = db.prepare(`
       INSERT INTO reembolsos (
         orderId, clienteNome, clienteId, produtoNome, produtoImageUrl,
-        motivo, descricao, banco, agencia, conta, tipoConta, fotoUrl, valorReembolso
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        motivo, descricao, banco, agencia, conta, tipoConta, fotoUrl, valorReembolso, artistHandle
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
@@ -1041,7 +1105,8 @@ app.post('/api/reembolsos', (req: Request, res: Response) => {
       conta,
       tipoConta,
       fotoUrl || '',
-      valorReembolso
+      valorReembolso,
+      artistHandle || ''
     );
 
     res.status(201).json({
@@ -1123,10 +1188,23 @@ app.get('/api/reembolsos', (req: Request, res: Response) => {
       }
     }
 
-    const reembolsos = db.prepare(`
-      SELECT * FROM reembolsos 
-      ORDER BY created_at DESC
-    `).all();
+    const { vendor } = req.query;
+    
+    let reembolsos;
+    if (vendor && vendor !== 'admin') {
+      // Se for um vendedor específico, filtra apenas os reembolsos dos seus produtos
+      reembolsos = db.prepare(`
+        SELECT * FROM reembolsos 
+        WHERE artistHandle = ? 
+        ORDER BY created_at DESC
+      `).all(vendor);
+    } else {
+      // Se for admin ou não especificado, retorna todos os reembolsos
+      reembolsos = db.prepare(`
+        SELECT * FROM reembolsos 
+        ORDER BY created_at DESC
+      `).all();
+    }
 
     res.json(reembolsos);
   } catch (error) {
@@ -1139,7 +1217,16 @@ app.get('/api/reembolsos', (req: Request, res: Response) => {
 app.get('/api/reembolsos/:id', (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const reembolso = db.prepare('SELECT * FROM reembolsos WHERE id = ?').get(id);
+    const { vendor } = req.query;
+    
+    let reembolso;
+    if (vendor && vendor !== 'admin') {
+      // Se for um vendedor específico, verificar se o reembolso pertence a ele
+      reembolso = db.prepare('SELECT * FROM reembolsos WHERE id = ? AND artistHandle = ?').get(id, vendor);
+    } else {
+      // Se for admin ou não especificado, retorna o reembolso
+      reembolso = db.prepare('SELECT * FROM reembolsos WHERE id = ?').get(id);
+    }
 
     if (!reembolso) {
       return res.status(404).json({ error: 'Reembolso não encontrado' });
@@ -1167,9 +1254,18 @@ app.put('/api/reembolsos/:id', (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Status inválido' });
     }
 
-    // Primeiro verificar se o reembolso existe
+    // Primeiro verificar se o reembolso existe e se o vendedor tem permissão
     console.log('🔍 Verificando se reembolso existe...');
-    const reembolso = db.prepare('SELECT * FROM reembolsos WHERE id = ?').get(id);
+    const { vendor } = req.query;
+    
+    let reembolso;
+    if (vendor && vendor !== 'admin') {
+      // Se for um vendedor específico, verificar se o reembolso pertence a ele
+      reembolso = db.prepare('SELECT * FROM reembolsos WHERE id = ? AND artistHandle = ?').get(id, vendor);
+    } else {
+      // Se for admin ou não especificado, retorna o reembolso
+      reembolso = db.prepare('SELECT * FROM reembolsos WHERE id = ?').get(id);
+    }
     console.log('📋 Reembolso encontrado:', reembolso);
     
     if (!reembolso) {

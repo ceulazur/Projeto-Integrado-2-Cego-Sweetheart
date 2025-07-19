@@ -3,7 +3,7 @@ import { UserContext } from "../../contexts/UserContext";
 import type { Usuario } from "../../contexts/UserContext";
 import { useFilters } from '../../contexts/FilterContext';
 
-type PedidoStatus = "Enviado" | "Em aberto" | "Concluído" | "reembolsado";
+type PedidoStatus = "transporte" | "entregue" | "reembolsado";
 
 type Pedido = {
   id: number;
@@ -24,10 +24,23 @@ type Pedido = {
 };
 
 const statusColors: Record<PedidoStatus, string> = {
-  "Enviado": "text-green-600 font-semibold",
-  "Em aberto": "text-yellow-600 font-semibold",
-  "Concluído": "text-blue-600 font-semibold",
+  "transporte": "text-yellow-600 font-semibold",
+  "entregue": "text-green-600 font-semibold",
   "reembolsado": "text-red-600 font-semibold",
+};
+
+// Função para mapear status do banco para exibição
+const getStatusDisplay = (status: string): string => {
+  switch (status) {
+    case 'transporte':
+      return 'Em Transporte';
+    case 'entregue':
+      return 'Entregue';
+    case 'reembolsado':
+      return 'Reembolsado';
+    default:
+      return status;
+  }
 };
 
 const Pedidos = () => {
@@ -37,7 +50,7 @@ const Pedidos = () => {
   const [modalAberto, setModalAberto] = useState(false);
   const [pedidoSelecionado, setPedidoSelecionado] = useState<Pedido | null>(null);
   const [codigoRastreio, setCodigoRastreio] = useState("");
-  const [statusSelecionado, setStatusSelecionado] = useState<PedidoStatus>("Em aberto");
+  const [statusSelecionado, setStatusSelecionado] = useState<PedidoStatus>("transporte");
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
 
   // Função para formatar valores monetários
@@ -184,9 +197,8 @@ const Pedidos = () => {
               className="border border-gray-300 rounded px-3 py-2 bg-white"
             >
               <option value="todos">Todos os Pedidos</option>
-              <option value="Em aberto">Em Aberto</option>
-              <option value="Enviado">Enviado</option>
-              <option value="Concluído">Concluído</option>
+              <option value="transporte">Em Transporte</option>
+              <option value="entregue">Entregue</option>
               <option value="reembolsado">Reembolsado</option>
             </select>
           </div>
@@ -239,7 +251,7 @@ const Pedidos = () => {
                 )}
                 <td className="border border-gray-300 p-2">{pedido.produtoNome}</td>
                 <td className={`border border-gray-300 p-2 ${statusColors[pedido.status]}`}>
-                  {pedido.status}
+                  {getStatusDisplay(pedido.status)}
                 </td>
                 <td className="border border-gray-300 p-2">{pedido.data}</td>
                 <td className="border border-gray-300 p-2 font-semibold text-green-600">
@@ -313,10 +325,9 @@ const Pedidos = () => {
                 value={statusSelecionado}
                 onChange={(e) => setStatusSelecionado(e.target.value as PedidoStatus)}
               >
-                <option value="Em aberto">Em aberto</option>
-                <option value="Enviado">Enviado</option>
+                <option value="transporte">Em Transporte</option>
+                <option value="entregue">Entregue</option>
                 <option value="reembolsado">Reembolsado</option>
-                <option value="Concluído">Concluído</option>
               </select>
             </div>
 

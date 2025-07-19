@@ -77,9 +77,9 @@ const PagamentoCartao: React.FC = () => {
 
     try {
       // Salvar pedido na API para cada item do carrinho
-      for (const item of cart) {
-        const produtoAtual = allProducts?.find(p => p.id === item.id);
-        if (produtoAtual) {
+    for (const item of cart) {
+      const produtoAtual = allProducts?.find(p => p.id === item.id);
+      if (produtoAtual) {
           // Criar pedido na API
           const pedidoData = {
             clienteNome: `${user?.firstName} ${user?.lastName}`,
@@ -108,21 +108,21 @@ const PagamentoCartao: React.FC = () => {
           }
 
           // Descontar estoque dos produtos
-          await updateProduct.mutateAsync({
-            ...produtoAtual,
-            quantity: Math.max(0, produtoAtual.quantity - item.quantity),
-          });
-        }
+        await updateProduct.mutateAsync({
+          ...produtoAtual,
+          quantity: Math.max(0, produtoAtual.quantity - item.quantity),
+        });
       }
+    }
 
-      // Salvar o valor total do pedido para exibir na tela de sucesso
-      if (user?.id) {
-        localStorage.setItem(`lastOrderTotal_${user.id}`, JSON.stringify({ subtotal, frete, total }));
-      }
+    // Salvar o valor total do pedido para exibir na tela de sucesso
+    if (user?.id) {
+      localStorage.setItem(`lastOrderTotal_${user.id}`, JSON.stringify({ subtotal, frete, total }));
+    }
       
-      // Limpar o carrinho do usuário após finalizar a compra
-      localStorage.removeItem(getCartKey(user?.id));
-      navigate('/pagamento-sucesso');
+    // Limpar o carrinho do usuário após finalizar a compra
+    localStorage.removeItem(getCartKey(user?.id));
+    navigate('/pagamento-sucesso');
     } catch (error) {
       console.error('Erro ao finalizar compra:', error);
       alert('Erro ao finalizar compra. Tente novamente.');

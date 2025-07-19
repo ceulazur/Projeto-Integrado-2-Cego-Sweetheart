@@ -42,7 +42,22 @@ export default function Reembolsos() {
   const fetchReembolsos = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3000/api/reembolsos');
+      
+      // Determinar o vendor handle baseado no usuário logado
+      let vendorHandle = '';
+      if (user?.email === 'ceulazur') {
+        vendorHandle = '@ceulazur';
+      } else if (user?.email === 'artemisia') {
+        vendorHandle = '@artemisia';
+      }
+      
+      // Construir URL com filtro de vendor se aplicável
+      let url = 'http://localhost:3000/api/reembolsos';
+      if (vendorHandle && user?.email !== 'admin') {
+        url += `?vendor=${encodeURIComponent(vendorHandle)}`;
+      }
+      
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         setReembolsos(data);

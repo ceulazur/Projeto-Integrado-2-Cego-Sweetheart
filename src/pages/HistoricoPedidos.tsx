@@ -257,7 +257,13 @@ const SimpleOrderItem: React.FC<{
         </button>
         <button 
           onClick={onRequestRefund}
-          className="min-h-7 gap-2.5 text-[13px] font-medium px-8 py-1.5 rounded-[20px] border border-solid bg-[rgba(245,0,0,0)] text-[rgba(245,0,0,1)] border-[rgba(245,0,0,1)] px-[22px]"
+          disabled={status !== 'entregue'}
+          title={status !== 'entregue' ? 'Só é possível solicitar reembolso para pedidos entregues' : 'Solicitar reembolso'}
+          className={`min-h-7 gap-2.5 text-[13px] font-medium px-8 py-1.5 rounded-[20px] border border-solid px-[22px] ${
+            status === 'entregue' 
+              ? 'bg-[rgba(245,0,0,0)] text-[rgba(245,0,0,1)] border-[rgba(245,0,0,1)] cursor-pointer' 
+              : 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed'
+          }`}
         >
           PEDIR REEMBOLSO
         </button>

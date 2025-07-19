@@ -29,6 +29,7 @@ import AdminPedidos from "./pages/admin/Pedidos";
 import AdminPerfil from "./pages/admin/Perfil";
 import AdminLogin from "./pages/admin/AdminLogin";
 import CadastrarVendedor from "./pages/admin/CadastrarVendedor";
+import Vendedores from "./pages/admin/Vendedores";
 import Reembolsos from "./pages/admin/Reembolsos";
 import DetalhesReembolso from "./pages/admin/DetalhesReembolso";
 import HistoricoPedidos from "./pages/HistoricoPedidos";
@@ -100,6 +101,7 @@ const App = () => (
                   <Route path="/admin/pedidos" element={<RequireAdminAuth><AdminLayout><AdminPedidos /></AdminLayout></RequireAdminAuth>} />
                   <Route path="/admin/perfil" element={<RequireAdminAuth><AdminLayout><AdminPerfil /></AdminLayout></RequireAdminAuth>} />
                   <Route path="/admin/cadastrar-vendedor" element={<RequireAdminAuth><AdminLayout><CadastrarVendedor /></AdminLayout></RequireAdminAuth>} />
+                  <Route path="/admin/vendedores" element={<RequireAdminAuth><AdminLayout><Vendedores /></AdminLayout></RequireAdminAuth>} />
                   <Route path="/admin/reembolsos" element={<RequireAdminAuth><AdminLayout><Reembolsos /></AdminLayout></RequireAdminAuth>} />
                   <Route path="/admin/reembolsos/:reembolsoId" element={<RequireAdminAuth><AdminLayout><DetalhesReembolso /></AdminLayout></RequireAdminAuth>} />
                   

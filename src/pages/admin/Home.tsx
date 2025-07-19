@@ -3,7 +3,7 @@ import { useProducts } from "../../hooks/useProducts";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 
-type PedidoStatus = "reembolsado" | "Enviado" | "Em aberto" | "Concluído";
+type PedidoStatus = "transporte" | "entregue" | "reembolsado";
 type Pedido = {
   id: number;
   clienteNome: string;
@@ -35,8 +35,8 @@ const Home = () => {
   const produtosSemEstoque = produtos?.filter(p => p.quantity === 0).length || 0;
   
   // Estatísticas reais dos pedidos
-  const pedidosEmAberto = pedidos.filter((p) => p.status === 'Em aberto').length;
-  const pedidosEnviados = pedidos.filter((p) => p.status === 'Enviado').length;
+  const pedidosEmTransporte = pedidos.filter((p) => p.status === 'transporte').length;
+  const pedidosEntregues = pedidos.filter((p) => p.status === 'entregue').length;
   const pedidosReembolsados = pedidos.filter((p) => p.status === 'reembolsado').length;
 
   if (isLoading || loadingPedidos) {
@@ -71,8 +71,8 @@ const Home = () => {
           <p className="text-3xl font-bold">{produtosComEstoque}</p>
         </div>
         <div className="bg-yellow-500 text-white p-6 rounded shadow text-center">
-          <h2 className="text-lg font-semibold">Pedidos em aberto</h2>
-          <p className="text-3xl font-bold">{pedidosEmAberto}</p>
+          <h2 className="text-lg font-semibold">Pedidos em Transporte</h2>
+          <p className="text-3xl font-bold">{pedidosEmTransporte}</p>
         </div>
         <div className="bg-red-600 text-white p-6 rounded shadow text-center">
           <h2 className="text-lg font-semibold">Sem Estoque</h2>
@@ -83,8 +83,8 @@ const Home = () => {
       {/* Estatísticas de pedidos */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
         <div className="bg-blue-600 text-white p-6 rounded shadow text-center">
-          <h2 className="text-lg font-semibold">Pedidos Enviados</h2>
-          <p className="text-3xl font-bold">{pedidosEnviados}</p>
+          <h2 className="text-lg font-semibold">Pedidos Entregues</h2>
+          <p className="text-3xl font-bold">{pedidosEntregues}</p>
         </div>
         <div className="bg-orange-600 text-white p-6 rounded shadow text-center">
           <h2 className="text-lg font-semibold">Pedidos Reembolsados</h2>

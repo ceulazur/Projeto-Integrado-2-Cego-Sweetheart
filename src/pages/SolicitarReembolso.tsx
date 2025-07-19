@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 interface Order {
   id: string | number;
+  produtoId: string | number;
   produtoNome: string;
   produtoImageUrl: string;
   produtoPrice: string;
@@ -96,6 +97,12 @@ export default function SolicitarReembolso() {
         // Verificar se o pedido pertence ao usuário logado
         if (String(foundOrder.clienteId) !== String(user.id)) {
           setError('Você não tem permissão para acessar este pedido');
+          return;
+        }
+
+        // Verificar se o pedido foi entregue
+        if (foundOrder.status !== 'entregue') {
+          setError('Só é possível solicitar reembolso para pedidos que foram entregues');
           return;
         }
 
@@ -232,6 +239,18 @@ export default function SolicitarReembolso() {
         }
       }
 
+      // Buscar o artistHandle do produto
+      let artistHandle = '';
+      try {
+        const produtoResponse = await fetch(`http://localhost:3000/api/products/${order?.produtoId}`);
+        if (produtoResponse.ok) {
+          const produto = await produtoResponse.json();
+          artistHandle = produto.artistHandle;
+        }
+      } catch (error) {
+        console.error('Erro ao buscar dados do produto:', error);
+      }
+
       // Enviar dados para a API de reembolso
       const reembolsoData = {
         orderId: orderId,
@@ -246,7 +265,8 @@ export default function SolicitarReembolso() {
         conta: formData.conta,
         tipoConta: formData.tipoConta,
         fotoUrl: fotoUrl,
-        valorReembolso: order?.total || ''
+        valorReembolso: order?.total || '',
+        artistHandle: artistHandle
       };
       
       const response = await fetch('http://localhost:3000/api/reembolsos', {

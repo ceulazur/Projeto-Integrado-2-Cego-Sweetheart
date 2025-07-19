@@ -65,7 +65,11 @@ export const OrderItem: React.FC<OrderItemProps> = ({
         <ActionButton 
           variant="secondary" 
           onClick={onRequestRefund}
-          className="px-[22px]"
+          disabled={status !== 'entregue'}
+          title={status !== 'entregue' ? 'Só é possível solicitar reembolso para pedidos entregues' : 'Solicitar reembolso'}
+          className={`px-[22px] ${
+            status !== 'entregue' ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
         >
           PEDIR REEMBOLSO
         </ActionButton>
