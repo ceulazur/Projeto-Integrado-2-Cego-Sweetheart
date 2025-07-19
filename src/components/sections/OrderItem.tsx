@@ -5,7 +5,7 @@ interface OrderItemProps {
   imageUrl: string;
   title: string;
   quantity: number;
-  status?: 'entregue' | 'transporte' | 'devolvido';
+  status?: 'entregue' | 'transporte' | 'devolvido' | 'reembolsado';
   onTrackOrder?: () => void;
   onViewDetails?: () => void;
   onRequestRefund?: () => void;
@@ -14,7 +14,8 @@ interface OrderItemProps {
 const statusMap = {
   entregue: { color: 'bg-green-500', text: 'Entregue' },
   transporte: { color: 'bg-yellow-400', text: 'Em transporte' },
-  devolvido: { color: 'bg-red-500', text: 'Devolvido/Reembolsado' },
+  devolvido: { color: 'bg-red-500', text: 'Reembolsado' },
+  reembolsado: { color: 'bg-red-500', text: 'Reembolsado' },
 };
 
 export const OrderItem: React.FC<OrderItemProps> = ({

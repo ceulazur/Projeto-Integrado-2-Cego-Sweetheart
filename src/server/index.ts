@@ -137,6 +137,27 @@ db.exec(`
     handle TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS reembolsos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    orderId TEXT NOT NULL,
+    clienteNome TEXT NOT NULL,
+    clienteId TEXT NOT NULL,
+    produtoNome TEXT NOT NULL,
+    produtoImageUrl TEXT,
+    motivo TEXT NOT NULL,
+    descricao TEXT NOT NULL,
+    banco TEXT NOT NULL,
+    agencia TEXT NOT NULL,
+    conta TEXT NOT NULL,
+    tipoConta TEXT NOT NULL,
+    fotoUrl TEXT,
+    status TEXT DEFAULT 'pendente',
+    dataSolicitacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    dataResposta DATETIME,
+    valorReembolso TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
 // Check if products table is empty
@@ -783,7 +804,12 @@ app.get('/api/pedidos', (req: Request, res: Response) => {
     if (vendor && vendor !== 'admin') {
       // Se for um vendedor específico, filtra apenas os pedidos dos seus produtos
       pedidos = db.prepare(`
-        SELECT p.*, pr.artistHandle 
+        SELECT p.*, pr.artistHandle,
+        CASE 
+          WHEN p.created_at IS NOT NULL AND p.created_at != '' AND p.created_at != 'NULL' AND datetime(p.created_at) IS NOT NULL
+          THEN date(p.created_at)
+          ELSE date('now')
+        END as data
         FROM pedidos p 
         JOIN products pr ON p.produtoId = pr.id 
         WHERE pr.artistHandle = ? 
@@ -792,7 +818,12 @@ app.get('/api/pedidos', (req: Request, res: Response) => {
     } else {
       // Se for admin ou não especificado, retorna todos os pedidos
       pedidos = db.prepare(`
-        SELECT p.*, pr.artistHandle 
+        SELECT p.*, pr.artistHandle,
+        CASE 
+          WHEN p.created_at IS NOT NULL AND p.created_at != '' AND p.created_at != 'NULL' AND datetime(p.created_at) IS NOT NULL
+          THEN date(p.created_at)
+          ELSE date('now')
+        END as data
         FROM pedidos p 
         JOIN products pr ON p.produtoId = pr.id 
         ORDER BY p.id DESC
@@ -898,6 +929,312 @@ app.get('/api/vendors/:id', (req: Request, res: Response) => {
     res.json(vendor);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar vendedor' });
+  }
+});
+
+// Rota para criar reembolso
+app.post('/api/reembolsos', (req: Request, res: Response) => {
+  try {
+    // Verificar se a tabela reembolsos existe e tem a estrutura correta
+    const tableExists = db.prepare(`
+      SELECT name FROM sqlite_master 
+      WHERE type='table' AND name='reembolsos'
+    `).get();
+
+    if (!tableExists) {
+      // Criar a tabela se não existir
+      db.exec(`
+        CREATE TABLE reembolsos (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          orderId TEXT NOT NULL,
+          clienteNome TEXT NOT NULL,
+          clienteId TEXT NOT NULL,
+          produtoNome TEXT NOT NULL,
+          produtoImageUrl TEXT,
+          motivo TEXT NOT NULL,
+          descricao TEXT NOT NULL,
+          banco TEXT NOT NULL,
+          agencia TEXT NOT NULL,
+          conta TEXT NOT NULL,
+          tipoConta TEXT NOT NULL,
+          fotoUrl TEXT,
+          status TEXT DEFAULT 'pendente',
+          dataSolicitacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+          dataResposta DATETIME,
+          valorReembolso TEXT NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+    } else {
+      // Verificar se a coluna orderId existe
+      const columns = db.prepare(`
+        PRAGMA table_info(reembolsos)
+      `).all();
+      
+      const hasOrderId = columns.some((col: { name: string }) => col.name === 'orderId');
+      
+      if (!hasOrderId) {
+        // Recriar a tabela com a estrutura correta
+        db.exec('DROP TABLE IF EXISTS reembolsos');
+        db.exec(`
+          CREATE TABLE reembolsos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            orderId TEXT NOT NULL,
+            clienteNome TEXT NOT NULL,
+            clienteId TEXT NOT NULL,
+            produtoNome TEXT NOT NULL,
+            produtoImageUrl TEXT,
+            motivo TEXT NOT NULL,
+            descricao TEXT NOT NULL,
+            banco TEXT NOT NULL,
+            agencia TEXT NOT NULL,
+            conta TEXT NOT NULL,
+            tipoConta TEXT NOT NULL,
+            fotoUrl TEXT,
+            status TEXT DEFAULT 'pendente',
+            dataSolicitacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+            dataResposta DATETIME,
+            valorReembolso TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+      }
+    }
+
+    const {
+      orderId,
+      clienteNome,
+      clienteId,
+      produtoNome,
+      produtoImageUrl,
+      motivo,
+      descricao,
+      banco,
+      agencia,
+      conta,
+      tipoConta,
+      fotoUrl,
+      valorReembolso
+    } = req.body;
+
+    if (!orderId || !clienteNome || !clienteId || !produtoNome || !motivo || !descricao || !banco || !agencia || !conta || !tipoConta || !valorReembolso) {
+      return res.status(400).json({ error: 'Todos os campos obrigatórios devem ser preenchidos' });
+    }
+
+    const stmt = db.prepare(`
+      INSERT INTO reembolsos (
+        orderId, clienteNome, clienteId, produtoNome, produtoImageUrl,
+        motivo, descricao, banco, agencia, conta, tipoConta, fotoUrl, valorReembolso
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    const result = stmt.run(
+      orderId,
+      clienteNome,
+      clienteId,
+      produtoNome,
+      produtoImageUrl || '',
+      motivo,
+      descricao,
+      banco,
+      agencia,
+      conta,
+      tipoConta,
+      fotoUrl || '',
+      valorReembolso
+    );
+
+    res.status(201).json({
+      message: 'Reembolso solicitado com sucesso',
+      id: result.lastInsertRowid
+    });
+  } catch (error) {
+    console.error('Erro ao criar reembolso:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Rota para listar reembolsos
+app.get('/api/reembolsos', (req: Request, res: Response) => {
+  try {
+    // Verificar se a tabela reembolsos existe e tem a estrutura correta
+    const tableExists = db.prepare(`
+      SELECT name FROM sqlite_master 
+      WHERE type='table' AND name='reembolsos'
+    `).get();
+
+    if (!tableExists) {
+      // Criar a tabela se não existir
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS reembolsos (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          orderId TEXT NOT NULL,
+          clienteNome TEXT NOT NULL,
+          clienteId TEXT NOT NULL,
+          produtoNome TEXT NOT NULL,
+          produtoImageUrl TEXT,
+          motivo TEXT NOT NULL,
+          descricao TEXT NOT NULL,
+          banco TEXT NOT NULL,
+          agencia TEXT NOT NULL,
+          conta TEXT NOT NULL,
+          tipoConta TEXT NOT NULL,
+          fotoUrl TEXT,
+          status TEXT DEFAULT 'pendente',
+          dataSolicitacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+          dataResposta DATETIME,
+          valorReembolso TEXT NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+    } else {
+      // Verificar se a coluna orderId existe
+      const columns = db.prepare(`
+        PRAGMA table_info(reembolsos)
+      `).all();
+      
+      const hasOrderId = columns.some((col: { name: string }) => col.name === 'orderId');
+      
+      if (!hasOrderId) {
+        // Recriar a tabela com a estrutura correta
+        db.exec('DROP TABLE IF EXISTS reembolsos');
+        db.exec(`
+          CREATE TABLE reembolsos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            orderId TEXT NOT NULL,
+            clienteNome TEXT NOT NULL,
+            clienteId TEXT NOT NULL,
+            produtoNome TEXT NOT NULL,
+            produtoImageUrl TEXT,
+            motivo TEXT NOT NULL,
+            descricao TEXT NOT NULL,
+            banco TEXT NOT NULL,
+            agencia TEXT NOT NULL,
+            conta TEXT NOT NULL,
+            tipoConta TEXT NOT NULL,
+            fotoUrl TEXT,
+            status TEXT DEFAULT 'pendente',
+            dataSolicitacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+            dataResposta DATETIME,
+            valorReembolso TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+      }
+    }
+
+    const reembolsos = db.prepare(`
+      SELECT * FROM reembolsos 
+      ORDER BY created_at DESC
+    `).all();
+
+    res.json(reembolsos);
+  } catch (error) {
+    console.error('Erro ao buscar reembolsos:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Rota para buscar reembolso por ID
+app.get('/api/reembolsos/:id', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const reembolso = db.prepare('SELECT * FROM reembolsos WHERE id = ?').get(id);
+
+    if (!reembolso) {
+      return res.status(404).json({ error: 'Reembolso não encontrado' });
+    }
+
+    res.json(reembolso);
+  } catch (error) {
+    console.error('Erro ao buscar reembolso:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Rota para aprovar/rejeitar reembolso
+app.put('/api/reembolsos/:id', (req: Request, res: Response) => {
+  try {
+    console.log('🔄 Tentando atualizar reembolso...');
+    const { id } = req.params;
+    const { status } = req.body;
+
+    console.log('📋 ID do reembolso:', id);
+    console.log('📋 Status solicitado:', status);
+
+    if (!status || !['aprovado', 'rejeitado'].includes(status)) {
+      console.log('❌ Status inválido:', status);
+      return res.status(400).json({ error: 'Status inválido' });
+    }
+
+    // Primeiro verificar se o reembolso existe
+    console.log('🔍 Verificando se reembolso existe...');
+    const reembolso = db.prepare('SELECT * FROM reembolsos WHERE id = ?').get(id);
+    console.log('📋 Reembolso encontrado:', reembolso);
+    
+    if (!reembolso) {
+      console.log('❌ Reembolso não encontrado');
+      return res.status(404).json({ error: 'Reembolso não encontrado' });
+    }
+
+    // Iniciar transação para garantir consistência
+    const transaction = db.transaction(() => {
+      // 1. Atualizar status do reembolso
+      console.log('✅ Atualizando status do reembolso para:', status);
+      const updateReembolsoStmt = db.prepare(`
+        UPDATE reembolsos 
+        SET status = ? 
+        WHERE id = ?
+      `);
+      const result = updateReembolsoStmt.run(status, id);
+      
+      if (result.changes === 0) {
+        throw new Error('Reembolso não encontrado');
+      }
+
+      // 2. Se o reembolso foi aprovado, atualizar o status do pedido
+      if (status === 'aprovado') {
+        console.log('💰 Reembolso aprovado! Atualizando status do pedido...');
+        
+        // Buscar o pedido pelo orderId
+        const pedido = db.prepare('SELECT * FROM pedidos WHERE id = ?').get(reembolso.orderId);
+        console.log('📋 Pedido encontrado:', pedido);
+        
+        if (pedido) {
+          // Atualizar status do pedido para "reembolsado"
+          const updatePedidoStmt = db.prepare(`
+            UPDATE pedidos 
+            SET status = ?, statusEntrega = ? 
+            WHERE id = ?
+          `);
+          const pedidoResult = updatePedidoStmt.run('reembolsado', 'Reembolsado', reembolso.orderId);
+          console.log('📊 Resultado da atualização do pedido:', pedidoResult);
+          
+          if (pedidoResult.changes > 0) {
+            console.log('✅ Status do pedido atualizado para "reembolsado"');
+          } else {
+            console.log('⚠️ Não foi possível atualizar o status do pedido');
+          }
+        } else {
+          console.log('⚠️ Pedido não encontrado para orderId:', reembolso.orderId);
+        }
+      }
+
+      return result;
+    });
+
+    // Executar a transação
+    const result = transaction();
+    console.log('📊 Resultado da transação:', result);
+
+    console.log('✅ Reembolso atualizado com sucesso!');
+    res.json({ 
+      message: `Reembolso ${status} com sucesso`,
+      pedidoAtualizado: status === 'aprovado'
+    });
+  } catch (error) {
+    console.error('❌ Erro ao atualizar reembolso:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
 

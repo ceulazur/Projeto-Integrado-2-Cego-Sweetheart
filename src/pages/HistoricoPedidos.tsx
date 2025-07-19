@@ -38,8 +38,10 @@ const OrderDetailsModal: React.FC<{
         return { color: 'bg-green-500', text: 'Entregue', bgColor: 'bg-green-50', borderColor: 'border-green-200' };
       case 'transporte':
         return { color: 'bg-yellow-400', text: 'Em transporte', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200' };
+      case 'reembolsado':
+        return { color: 'bg-red-500', text: 'Reembolsado', bgColor: 'bg-red-50', borderColor: 'border-red-200' };
       default:
-        return { color: 'bg-red-500', text: 'Devolvido/Reembolsado', bgColor: 'bg-red-50', borderColor: 'border-red-200' };
+        return { color: 'bg-red-500', text: 'Reembolsado', bgColor: 'bg-red-50', borderColor: 'border-red-200' };
     }
   };
 
@@ -212,8 +214,10 @@ const SimpleOrderItem: React.FC<{
         return { color: 'bg-green-500', text: 'Entregue' };
       case 'transporte':
         return { color: 'bg-yellow-400', text: 'Em transporte' };
+      case 'reembolsado':
+        return { color: 'bg-red-500', text: 'Reembolsado' };
       default:
-        return { color: 'bg-red-500', text: 'Devolvido/Reembolsado' };
+        return { color: 'bg-red-500', text: 'Reembolsado' };
     }
   };
 
@@ -310,8 +314,7 @@ const HistoricoPedidos: React.FC = () => {
   };
 
   const handleRequestRefund = (orderId: string) => {
-    console.log(`Pedir reembolso para o pedido ${orderId}`);
-    // Implementar lógica de pedido de reembolso
+    navigate(`/solicitar-reembolso/${orderId}`);
   };
 
   const filteredOrders = orders.filter(order =>

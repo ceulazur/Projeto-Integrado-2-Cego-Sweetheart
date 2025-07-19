@@ -3,7 +3,7 @@ import { useProducts } from "../../hooks/useProducts";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 
-type PedidoStatus = "Cancelado" | "Enviado" | "Em aberto" | "Concluído";
+type PedidoStatus = "reembolsado" | "Enviado" | "Em aberto" | "Concluído";
 type Pedido = {
   id: number;
   clienteNome: string;
@@ -37,7 +37,7 @@ const Home = () => {
   // Estatísticas reais dos pedidos
   const pedidosEmAberto = pedidos.filter((p) => p.status === 'Em aberto').length;
   const pedidosEnviados = pedidos.filter((p) => p.status === 'Enviado').length;
-  const pedidosCancelados = pedidos.filter((p) => p.status === 'Cancelado').length;
+  const pedidosReembolsados = pedidos.filter((p) => p.status === 'reembolsado').length;
 
   if (isLoading || loadingPedidos) {
     return (
@@ -87,8 +87,8 @@ const Home = () => {
           <p className="text-3xl font-bold">{pedidosEnviados}</p>
         </div>
         <div className="bg-orange-600 text-white p-6 rounded shadow text-center">
-          <h2 className="text-lg font-semibold">Pedidos Cancelados</h2>
-          <p className="text-3xl font-bold">{pedidosCancelados}</p>
+          <h2 className="text-lg font-semibold">Pedidos Reembolsados</h2>
+          <p className="text-3xl font-bold">{pedidosReembolsados}</p>
         </div>
       </div>
 

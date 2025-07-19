@@ -29,7 +29,10 @@ import AdminPedidos from "./pages/admin/Pedidos";
 import AdminPerfil from "./pages/admin/Perfil";
 import AdminLogin from "./pages/admin/AdminLogin";
 import CadastrarVendedor from "./pages/admin/CadastrarVendedor";
+import Reembolsos from "./pages/admin/Reembolsos";
+import DetalhesReembolso from "./pages/admin/DetalhesReembolso";
 import HistoricoPedidos from "./pages/HistoricoPedidos";
+import SolicitarReembolso from "./pages/SolicitarReembolso";
 
 const RequireAdminAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, user } = useAuth();
@@ -85,6 +88,7 @@ const App = () => (
                   <Route path="/pagamento-cartao" element={<PagamentoCartao />} />
                   <Route path="/pagamento-pix" element={<PagamentoPix />} />
                   <Route path="/historico-pedidos" element={<HistoricoPedidos />} />
+                  <Route path="/solicitar-reembolso/:orderId" element={<SolicitarReembolso />} />
                   
                   {/* Login admin */}
                   <Route path="/admin/login" element={<AdminLogin />} />
@@ -96,6 +100,8 @@ const App = () => (
                   <Route path="/admin/pedidos" element={<RequireAdminAuth><AdminLayout><AdminPedidos /></AdminLayout></RequireAdminAuth>} />
                   <Route path="/admin/perfil" element={<RequireAdminAuth><AdminLayout><AdminPerfil /></AdminLayout></RequireAdminAuth>} />
                   <Route path="/admin/cadastrar-vendedor" element={<RequireAdminAuth><AdminLayout><CadastrarVendedor /></AdminLayout></RequireAdminAuth>} />
+                  <Route path="/admin/reembolsos" element={<RequireAdminAuth><AdminLayout><Reembolsos /></AdminLayout></RequireAdminAuth>} />
+                  <Route path="/admin/reembolsos/:reembolsoId" element={<RequireAdminAuth><AdminLayout><DetalhesReembolso /></AdminLayout></RequireAdminAuth>} />
                   
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

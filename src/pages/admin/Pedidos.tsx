@@ -3,7 +3,7 @@ import { UserContext } from "../../contexts/UserContext";
 import type { Usuario } from "../../contexts/UserContext";
 import { useFilters } from '../../contexts/FilterContext';
 
-type PedidoStatus = "Cancelado" | "Enviado" | "Em aberto" | "Concluído";
+type PedidoStatus = "Enviado" | "Em aberto" | "Concluído" | "reembolsado";
 
 type Pedido = {
   id: number;
@@ -24,10 +24,10 @@ type Pedido = {
 };
 
 const statusColors: Record<PedidoStatus, string> = {
-  "Cancelado": "text-red-600 font-semibold",
   "Enviado": "text-green-600 font-semibold",
   "Em aberto": "text-yellow-600 font-semibold",
   "Concluído": "text-blue-600 font-semibold",
+  "reembolsado": "text-red-600 font-semibold",
 };
 
 const Pedidos = () => {
@@ -136,11 +136,11 @@ const Pedidos = () => {
 
   // Calcular totais financeiros (apenas preço do produto, sem frete)
   const totalRecebido = pedidos
-    .filter(pedido => pedido.status !== 'Cancelado' && pedido.subtotal)
+    .filter(pedido => pedido.status !== 'reembolsado' && pedido.subtotal)
     .reduce((sum, pedido) => sum + extrairValor(pedido.subtotal), 0);
 
   const totalReembolsado = pedidos
-    .filter(pedido => pedido.status === 'Cancelado' && pedido.subtotal)
+    .filter(pedido => pedido.status === 'reembolsado' && pedido.subtotal)
     .reduce((sum, pedido) => sum + extrairValor(pedido.subtotal), 0);
 
   const saldoLiquido = totalRecebido - totalReembolsado;
@@ -187,7 +187,7 @@ const Pedidos = () => {
               <option value="Em aberto">Em Aberto</option>
               <option value="Enviado">Enviado</option>
               <option value="Concluído">Concluído</option>
-              <option value="Cancelado">Cancelado (Reembolsos)</option>
+              <option value="reembolsado">Reembolsado</option>
             </select>
           </div>
           <div className="text-sm text-gray-600">
@@ -246,7 +246,7 @@ const Pedidos = () => {
                   {formatarValor(pedido.subtotal)}
                 </td>
                 <td className="border border-gray-300 p-2 font-semibold text-red-600">
-                  {pedido.status === 'Cancelado' ? formatarValor(pedido.subtotal) : 'R$ 0,00'}
+                  {pedido.status === 'reembolsado' ? formatarValor(pedido.subtotal) : 'R$ 0,00'}
                 </td>
               </tr>
             ))}
@@ -315,7 +315,7 @@ const Pedidos = () => {
               >
                 <option value="Em aberto">Em aberto</option>
                 <option value="Enviado">Enviado</option>
-                <option value="Cancelado">Cancelado</option>
+                <option value="reembolsado">Reembolsado</option>
                 <option value="Concluído">Concluído</option>
               </select>
             </div>

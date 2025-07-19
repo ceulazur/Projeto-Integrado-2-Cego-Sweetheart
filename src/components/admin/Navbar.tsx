@@ -5,6 +5,7 @@ import {
   Squares2X2Icon,
   ShoppingBagIcon,
   UserCircleIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { Link, useNavigate } from "react-router-dom";
 import { UserContext } from "../../contexts/UserContext";
@@ -223,6 +224,12 @@ const Navbar = () => {
               <ShoppingBagIcon className="h-5 w-5 text-gray-600" />
               <Link to="/admin/pedidos" className="hover:text-blue-500" onClick={() => setIsMenuOpen(false)}>
                 Pedidos
+              </Link>
+            </li>
+            <li className="flex items-center gap-3">
+              <ArrowPathIcon className="h-5 w-5 text-gray-600" />
+              <Link to="/admin/reembolsos" className="hover:text-blue-500" onClick={() => setIsMenuOpen(false)}>
+                Reembolsos
               </Link>
             </li>
             {isAdmin && (
