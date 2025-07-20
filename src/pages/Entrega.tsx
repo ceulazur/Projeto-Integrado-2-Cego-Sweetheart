@@ -22,6 +22,14 @@ const Entrega: React.FC = () => {
   const [street, setStreet] = useState('');
   const [city, setCity] = useState('');
   const [cep, setCep] = useState('');
+  const [cepLoading, setCepLoading] = useState(false);
+  const [cepError, setCepError] = useState('');
+  const [enderecoCompleto, setEnderecoCompleto] = useState<{
+    logradouro: string;
+    bairro: string;
+    localidade: string;
+    uf: string;
+  } | null>(null);
   const [number, setNumber] = useState('');
   const [complement, setComplement] = useState('');
   const [cpfCnpj, setCpfCnpj] = useState('');
@@ -53,8 +61,70 @@ const Entrega: React.FC = () => {
     return value;
   }
 
+  // Função para formatar CEP
+  function formatarCep(value: string) {
+    const cleanValue = value.replace(/\D/g, '');
+    return cleanValue.replace(/^(\d{5})(\d{3})$/, '$1-$2');
+  }
+
+  // Função para buscar CEP
+  const buscarCep = async (cepValue: string) => {
+    if (cepValue.length !== 9) return;
+    
+    try {
+      setCepLoading(true);
+      setCepError('');
+      
+      const response = await fetch(`/api/cep/${cepValue.replace(/\D/g, '')}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setEnderecoCompleto(data);
+        setStreet(data.logradouro);
+        setCity(data.localidade);
+        setCepError('');
+      } else {
+        setCepError('CEP não encontrado');
+        setEnderecoCompleto(null);
+      }
+    } catch (error) {
+      setCepError('Erro ao buscar CEP');
+      setEnderecoCompleto(null);
+    } finally {
+      setCepLoading(false);
+    }
+  };
+
+  // Função para lidar com mudança do CEP
+  const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value.length <= 9) {
+      const formattedCep = formatarCep(value);
+      setCep(formattedCep);
+      
+      if (formattedCep.length === 9) {
+        buscarCep(formattedCep);
+      } else {
+        setCepError('');
+        setEnderecoCompleto(null);
+      }
+    }
+  };
+
   function handleContinue(e: React.FormEvent) {
     e.preventDefault();
+    
+    // Salvar dados do endereço no localStorage
+    const enderecoData = {
+      street,
+      city,
+      cep,
+      number,
+      complement,
+      cpfCnpj
+    };
+    localStorage.setItem('enderecoEntrega', JSON.stringify(enderecoData));
+    
     navigate('/escolha-entrega');
   }
 
@@ -118,15 +188,39 @@ const Entrega: React.FC = () => {
             value={city}
             onChange={e => setCity(e.target.value)}
             required
+            disabled={enderecoCompleto !== null}
           />
+          <div className="relative">
           <Input
             id="cep"
             placeholder="CEP"
             value={cep}
-            onChange={e => setCep(e.target.value)}
+              onChange={handleCepChange}
             required
-          />
+              maxLength={9}
+              inputMode="numeric"
+            />
+            {cepLoading && (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
+              </div>
+            )}
+          </div>
         </div>
+        
+        {cepError && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+            <p className="text-red-800 text-sm">{cepError}</p>
+          </div>
+        )}
+        
+        {enderecoCompleto && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+            <p className="text-green-800 text-sm">
+              <strong>Endereço encontrado:</strong> {enderecoCompleto.logradouro}, {enderecoCompleto.bairro}, {enderecoCompleto.localidade} - {enderecoCompleto.uf}
+            </p>
+          </div>
+        )}
         <div className="flex gap-3.5 max-md:flex-col max-md:gap-2.5">
           <Input
             id="number"

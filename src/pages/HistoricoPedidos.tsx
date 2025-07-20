@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Header } from '../components/layout/Header';
+import { useToast } from '../hooks/use-toast';
 
 interface Order {
   id: string;
@@ -276,6 +277,7 @@ const SimpleOrderItem: React.FC<{
 const HistoricoPedidos: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -311,7 +313,44 @@ const HistoricoPedidos: React.FC = () => {
 
   const handleTrackOrder = (orderId: string) => {
     console.log(`Rastrear pedido ${orderId}`);
-    // Implementar lógica de rastreamento
+    
+    // Simular código de rastreio baseado no ID do pedido
+    const trackingCode = generateTrackingCode(orderId);
+    
+    // Gerar URL de rastreio simulada
+    const trackingUrl = `https://rastreamento.correios.com.br/app/index.php?objeto=${trackingCode}`;
+    
+    // Abrir em nova aba
+    window.open(trackingUrl, '_blank');
+    
+    // Mostrar toast de confirmação
+    toast({
+      title: "Rastreamento Aberto",
+      description: `Código de rastreio: ${trackingCode}`,
+      duration: 3000,
+    });
+  };
+
+  // Função para gerar código de rastreio determinístico
+  const generateTrackingCode = (orderId: string): string => {
+    // Função hash simples para gerar código consistente
+    const hash = (str: string) => {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+      }
+      return Math.abs(hash);
+    };
+    
+    const hashValue = hash(orderId);
+    
+    // Gerar código no formato BR + 9 dígitos + 2 letras
+    const digits = String(hashValue).padStart(9, '0').slice(0, 9);
+    const letters = String.fromCharCode(65 + (hashValue % 26)) + String.fromCharCode(65 + ((hashValue * 2) % 26));
+    
+    return `BR${digits}${letters}`;
   };
 
   const handleViewDetails = (order: Order) => {

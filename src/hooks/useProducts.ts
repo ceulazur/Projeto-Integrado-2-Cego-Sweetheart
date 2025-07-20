@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 
 export interface Product {
   id: string;
@@ -16,7 +17,7 @@ export interface Product {
   category: string;
 }
 
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = '/api';
 
 // Fetch all products
 const fetchProducts = async (): Promise<Product[]> => {
@@ -29,11 +30,17 @@ const fetchProducts = async (): Promise<Product[]> => {
 
 // Fetch single product
 const fetchProduct = async (id: string): Promise<Product> => {
+  console.log('🔍 Buscando produto com ID:', id);
   const response = await fetch(`${API_BASE_URL}/products/${id}`);
+  console.log('📡 Resposta da API:', response.status, response.statusText);
+  
   if (!response.ok) {
     throw new Error('Produto não encontrado');
   }
-  return response.json();
+  
+  const data = await response.json();
+  console.log('📦 Dados do produto:', data);
+  return data;
 };
 
 // Create product
@@ -86,13 +93,40 @@ export const useProducts = () => {
   });
 };
 
-// Hook to get single product
+// Hook to get single product (versão com fetch direto para debug)
 export const useProduct = (id: string) => {
-  return useQuery({
-    queryKey: ['product', id],
-    queryFn: () => fetchProduct(id),
-    enabled: !!id,
-  });
+  const [data, setData] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    if (!id) {
+      setData(null);
+      setError(null);
+      return;
+    }
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        console.log('🔄 Iniciando busca do produto:', id);
+        const productData = await fetchProduct(id);
+        console.log('✅ Produto carregado com sucesso:', productData.title);
+        setData(productData);
+      } catch (err) {
+        console.error('❌ Erro ao buscar produto:', err);
+        setError(err instanceof Error ? err : new Error('Erro desconhecido'));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id]);
+
+  return { data, isLoading, error };
 };
 
 // Hook to create product

@@ -4,27 +4,23 @@ import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, getCartKey } from '../contexts/AuthContext';
+import { TruckIcon, ClockIcon } from '@heroicons/react/24/outline';
 
-const deliveryOptions = [
-  {
-    id: 'pac',
-    name: 'PAC Promocional',
-    description: 'Chega segunda-feira 02/06',
-    price: 39.90,
-  },
-  {
-    id: 'sedex',
-    name: 'SEDEX Promocional',
-    description: 'Chega segunda-feira 02/06',
-    price: 59.90,
-  },
-  {
-    id: 'nuvem',
-    name: 'Nuvem',
-    description: 'Chega segunda-feira 02/06',
-    price: 35.00,
-  },
-];
+interface FreteOption {
+  codigo: string;
+  nome: string;
+  preco: number;
+  prazo: number;
+}
+
+interface EnderecoData {
+  street: string;
+  city: string;
+  cep: string;
+  number: string;
+  complement: string;
+  cpfCnpj: string;
+}
 
 interface CartItem {
   id: string;
@@ -36,12 +32,17 @@ interface CartItem {
 }
 
 const EscolhaEntrega: React.FC = () => {
-  const [selected, setSelected] = useState('sedex');
+  const [selected, setSelected] = useState<string>('');
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [freteOptions, setFreteOptions] = useState<FreteOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
+  const [enderecoData, setEnderecoData] = useState<EnderecoData | null>(null);
   const navigate = useNavigate();
   const { user } = useAuth();
 
   useEffect(() => {
+    // Carregar dados do carrinho
     const stored = localStorage.getItem(getCartKey(user?.id));
     if (stored) {
       try {
@@ -50,17 +51,79 @@ const EscolhaEntrega: React.FC = () => {
         setCart([]);
       }
     }
+
+    // Carregar dados do endereço
+    const enderecoStored = localStorage.getItem('enderecoEntrega');
+    if (enderecoStored) {
+      try {
+        const endereco = JSON.parse(enderecoStored);
+        setEnderecoData(endereco);
+        calcularFrete(endereco.cep);
+      } catch {
+        setError('Erro ao carregar dados do endereço');
+        setLoading(false);
+      }
+    } else {
+      setError('Dados do endereço não encontrados');
+      setLoading(false);
+    }
   }, [user?.id]);
 
-  const selectedOption = deliveryOptions.find(opt => opt.id === selected) || deliveryOptions[0];
-  const frete = selectedOption.price;
+  const calcularFrete = async (cepDestino: string) => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      const response = await fetch('/api/frete/calcular', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cepOrigem: '01001-000', // CEP de São Paulo
+          cepDestino: cepDestino.replace(/\D/g, ''),
+          peso: 1000, // 1kg
+          comprimento: 20,
+          altura: 20,
+          largura: 20
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setFreteOptions(data.servicos);
+        if (data.servicos.length > 0) {
+          setSelected(data.servicos[0].codigo);
+        }
+      } else {
+        setError(data.error || 'Erro ao calcular frete');
+      }
+    } catch (error) {
+      setError('Erro ao calcular frete');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const selectedOption = freteOptions.find(opt => opt.codigo === selected);
+  const frete = selectedOption?.preco || 0;
   const subtotal = cart.reduce((acc, item) => acc + (parseFloat(item.price.replace('R$', '').replace(',', '.')) * item.quantity), 0);
   const total = subtotal + frete;
 
   function handleContinue(e: React.FormEvent) {
     e.preventDefault();
     if (!selected) return;
-    localStorage.setItem('selectedFrete', frete.toString());
+    
+    // Salvar dados do frete selecionado
+    const freteData = {
+      codigo: selectedOption?.codigo,
+      nome: selectedOption?.nome,
+      preco: selectedOption?.preco,
+      prazo: selectedOption?.prazo
+    };
+    localStorage.setItem('selectedFrete', JSON.stringify(freteData));
+    
     navigate('/pagamento');
   }
 
@@ -110,39 +173,69 @@ const EscolhaEntrega: React.FC = () => {
       </section>
       <section className="px-4">
         <h2 className="text-4xl font-bold mb-6 text-black">Entrega por</h2>
+        
+        {loading && (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+            <span className="ml-3 text-lg">Calculando frete...</span>
+          </div>
+        )}
+        
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-800 text-sm">{error}</p>
+            <button
+              onClick={() => enderecoData && calcularFrete(enderecoData.cep)}
+              className="mt-2 text-red-600 underline text-sm"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        )}
+        
+        {!loading && !error && freteOptions.length > 0 && (
         <form className="bg-[rgba(70,70,70,0)] border overflow-hidden pb-[13px] px-[5px] rounded-[20px] border-[rgba(96,96,96,1)] border-solid mb-8">
           <fieldset>
             <legend className="sr-only">Opções de entrega</legend>
-            {deliveryOptions.map((option, index) => (
+              {freteOptions.map((option, index) => (
               <div
-                key={option.id}
-                className={`flex min-h-[57px] w-full items-center gap-[40px_50px] justify-between ${index > 0 ? 'mt-[11px]' : ''} ${index === 2 ? 'pb-2' : ''}`}
+                  key={option.codigo}
+                  className={`flex min-h-[57px] w-full items-center gap-[40px_50px] justify-between ${index > 0 ? 'mt-[11px]' : ''}`}
               >
-                <div className={`self-stretch flex items-stretch gap-2.5 my-auto ${index === 0 ? 'w-56 pr-3 pb-1.5' : index === 1 ? 'w-56 pb-1.5 px-0.5' : 'w-[227px] pb-[7px] px-0.5'}`}>
+                  <div className="self-stretch flex items-stretch gap-2.5 my-auto w-56 pr-3 pb-1.5">
                   <label className="flex items-center gap-2.5 cursor-pointer">
                     <input
                       type="radio"
                       name="delivery"
-                      value={option.id}
-                      checked={selected === option.id}
-                      onChange={() => setSelected(option.id)}
+                        value={option.codigo}
+                        checked={selected === option.codigo}
+                        onChange={() => setSelected(option.codigo)}
                       className="sr-only"
                     />
                     <div
-                      className={`flex w-5 shrink-0 h-5 my-auto rounded-full border-black border-solid ${selected === option.id ? 'bg-black border' : 'bg-white border'}`}
+                        className={`flex w-5 shrink-0 h-5 my-auto rounded-full border-black border-solid ${selected === option.codigo ? 'bg-black border' : 'bg-white border'}`}
                       aria-hidden="true"
                     />
                     <div className="flex flex-col items-stretch">
-                      <div className="text-xl font-bold text-black">{option.name}</div>
-                      <div className={`font-normal mt-${index === 2 ? '2' : '[7px]'} ${index === 2 ? 'text-[15px]' : 'text-sm'}`}>{option.description}</div>
+                        <div className="text-xl font-bold text-black flex items-center gap-2">
+                          <TruckIcon className="w-5 h-5" />
+                          {option.nome}
+                        </div>
+                        <div className="font-normal mt-[7px] text-sm flex items-center gap-1">
+                          <ClockIcon className="w-4 h-4" />
+                          {option.prazo} dia{option.prazo > 1 ? 's' : ''} úteis
+                        </div>
                     </div>
                   </label>
                 </div>
-                <div className="text-xl font-bold text-right self-stretch my-auto text-black">R$ {option.price.toFixed(2).replace('.', ',')}</div>
+                  <div className="text-xl font-bold text-right self-stretch my-auto text-black">
+                    R$ {option.preco.toFixed(2).replace('.', ',')}
+                  </div>
               </div>
             ))}
           </fieldset>
         </form>
+        )}
         <Button
           type="button"
           className="w-full bg-black text-white rounded-2xl py-5 text-2xl font-semibold mt-2 focus:ring-black focus:border-black"

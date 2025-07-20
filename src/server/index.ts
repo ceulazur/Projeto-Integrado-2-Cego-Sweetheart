@@ -5,6 +5,7 @@ import { dirname, join } from 'path';
 import Database from 'better-sqlite3';
 import bcrypt from 'bcryptjs';
 import multer from 'multer';
+import { CorreiosService } from './correios.js';
 
 // Types
 interface User {
@@ -1330,6 +1331,56 @@ app.put('/api/reembolsos/:id', (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('❌ Erro ao atualizar reembolso:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Rotas de Correios
+app.get('/api/cep/:cep', async (req: Request, res: Response) => {
+  try {
+    const { cep } = req.params;
+    
+    if (!CorreiosService.validarCep(cep)) {
+      return res.status(400).json({ error: 'CEP inválido' });
+    }
+    
+    const endereco = await CorreiosService.buscarCep(cep);
+    
+    if (!endereco) {
+      return res.status(404).json({ error: 'CEP não encontrado' });
+    }
+    
+    res.json(endereco);
+  } catch (error) {
+    console.error('Erro ao buscar CEP:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+app.post('/api/frete/calcular', async (req: Request, res: Response) => {
+  try {
+    const { cepOrigem, cepDestino, peso, comprimento, altura, largura } = req.body;
+    
+    if (!cepOrigem || !cepDestino) {
+      return res.status(400).json({ error: 'CEP de origem e destino são obrigatórios' });
+    }
+    
+    if (!CorreiosService.validarCep(cepOrigem) || !CorreiosService.validarCep(cepDestino)) {
+      return res.status(400).json({ error: 'CEP inválido' });
+    }
+    
+    const frete = await CorreiosService.calcularFrete(
+      cepOrigem,
+      cepDestino,
+      peso || 1000, // 1kg padrão
+      comprimento || 20,
+      altura || 20,
+      largura || 20
+    );
+    
+    res.json(frete);
+  } catch (error) {
+    console.error('Erro ao calcular frete:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });

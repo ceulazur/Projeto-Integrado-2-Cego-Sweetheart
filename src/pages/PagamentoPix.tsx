@@ -27,9 +27,17 @@ interface CartItem {
   category: string;
 }
 
+interface FreteData {
+  codigo: string;
+  nome: string;
+  preco: number;
+  prazo: number;
+}
+
 const PagamentoPix: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [frete, setFrete] = useState(DEFAULT_FRETE);
+  const [freteData, setFreteData] = useState<FreteData | null>(null);
   const [codigoPix] = useState(gerarCodigoPixRealista());
   const [expiraEm, setExpiraEm] = useState<Date | null>(null);
   const [tempoRestante, setTempoRestante] = useState(120); // segundos
@@ -44,6 +52,7 @@ const PagamentoPix: React.FC = () => {
   const total = (subtotal + frete) - descontoValor;
 
   useEffect(() => {
+    // Carregar dados do carrinho
     const stored = localStorage.getItem(getCartKey(user?.id));
     if (stored) {
       try {
@@ -52,12 +61,44 @@ const PagamentoPix: React.FC = () => {
         setCart([]);
       }
     }
+
+    // Carregar dados do frete (compatibilidade com formato antigo e novo)
     const storedFrete = localStorage.getItem('selectedFrete');
-    if (storedFrete && !isNaN(Number(storedFrete))) {
-      setFrete(Number(storedFrete));
+    if (storedFrete) {
+      try {
+        // Tentar parsear como JSON (novo formato)
+        const parsedFrete = JSON.parse(storedFrete);
+        if (parsedFrete && typeof parsedFrete === 'object' && parsedFrete.preco) {
+          // Novo formato: objeto com dados completos
+          setFrete(parsedFrete.preco);
+          setFreteData(parsedFrete);
+        } else {
+          // Formato antigo: apenas número
+          const freteNumber = Number(storedFrete);
+          if (!isNaN(freteNumber)) {
+            setFrete(freteNumber);
+            setFreteData(null);
+          } else {
+            setFrete(DEFAULT_FRETE);
+            setFreteData(null);
+          }
+        }
+      } catch {
+        // Se não conseguir parsear como JSON, tentar como número
+        const freteNumber = Number(storedFrete);
+        if (!isNaN(freteNumber)) {
+          setFrete(freteNumber);
+          setFreteData(null);
+        } else {
+          setFrete(DEFAULT_FRETE);
+          setFreteData(null);
+        }
+      }
     } else {
       setFrete(DEFAULT_FRETE);
+      setFreteData(null);
     }
+
     // Define o tempo de expiração para 2 minutos a partir de agora
     const agora = new Date();
     const expira = new Date(agora.getTime() + 2 * 60 * 1000);
@@ -180,7 +221,7 @@ const PagamentoPix: React.FC = () => {
             <span>R$ {subtotal.toFixed(2).replace('.', ',')}</span>
           </div>
           <div className="flex justify-between mb-5">
-            <span>Custo de frete</span>
+            <span>Custo de frete{freteData ? ` (${freteData.nome})` : ''}</span>
             <span>R$ {frete.toFixed(2).replace('.', ',')}</span>
           </div>
           <div className="flex justify-between mb-5 font-semibold">

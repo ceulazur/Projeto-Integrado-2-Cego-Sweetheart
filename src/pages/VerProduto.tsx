@@ -13,9 +13,18 @@ import { useProduct, Product } from '../hooks/useProducts';
 import { useContext } from 'react';
 import { UserContext } from '../contexts/UserContext';
 import { useAuth, getCartKey } from '../contexts/AuthContext';
+import { FreteCalculator } from '../components/sections/FreteCalculator';
+
+interface FreteOption {
+  codigo: string;
+  nome: string;
+  preco: number;
+  prazo: number;
+}
 
 export const VerProduto: React.FC = () => {
   const [selectedSize, setSelectedSize] = useState('P');
+  const [selectedFrete, setSelectedFrete] = useState<FreteOption | null>(null);
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { usuario } = useContext(UserContext);
@@ -54,7 +63,7 @@ export const VerProduto: React.FC = () => {
     const idx = cart.findIndex((item) => item.id === productData.id);
     if (idx >= 0) {
       cart[idx].quantity += 1;
-        } else {
+    } else {
       const item: CartItem = {
         id: productData.id,
         title: productData.title,
@@ -65,13 +74,17 @@ export const VerProduto: React.FC = () => {
       };
       console.log('Adicionando ao carrinho:', item);
       cart.push(item);
-        }
+    }
     localStorage.setItem(getCartKey(user?.id), JSON.stringify(cart));
     navigate('/carrinho');
   };
 
   const handleGoBack = () => {
     navigate('/catalogo');
+  };
+
+  const handleFreteSelect = (frete: FreteOption) => {
+    setSelectedFrete(frete);
   };
 
   if (isLoading) {
@@ -114,7 +127,7 @@ export const VerProduto: React.FC = () => {
           alt={`${productData.title} - Arte do artista ${productData.artistUsername}`}
         />
 
-        <ProductInfo
+        <ProductInfo 
           name={productData.title}
           price={productData.price}
         />
@@ -125,8 +138,8 @@ export const VerProduto: React.FC = () => {
         />
 
         <div className="shrink-0 self-stretch mt-2.5 h-px border border-black border-solid" />
-
-        <ProductSpecs
+        
+        <ProductSpecs 
           dimensions={productData.dimensions}
           framed={productData.framed}
         />
@@ -134,27 +147,70 @@ export const VerProduto: React.FC = () => {
         <ProductDescription
           description={productData.description}
         />
-
+        
         <ProductQuantity
           quantity={productData.quantity}
         />
-
+        
         <section className="mt-2 w-64 max-w-full text-sm text-gray-700">
           <div>Categoria: <span className="font-bold text-black">{productData.category}</span></div>
         </section>
+        
         {(productData.category === 'Camisa' || productData.category === 'Calça') && (
-        <SizeSelector
-          sizes={productData.availableSizes}
-          defaultSize="P"
-          onSizeChange={handleSizeChange}
-        />
+          <SizeSelector
+            sizes={productData.availableSizes}
+            defaultSize="P"
+            onSizeChange={handleSizeChange}
+          />
+        )}
+
+        {/* Calculadora de Frete */}
+        <div className="w-full mt-4">
+          <FreteCalculator
+            onFreteSelect={handleFreteSelect}
+            selectedFrete={selectedFrete}
+            cepOrigem="01001-000"
+          />
+        </div>
+
+        {/* Resumo do Pedido com Frete */}
+        {selectedFrete && (
+          <div className="w-full mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+            <h3 className="text-lg font-semibold text-blue-900 mb-3">
+              Resumo do Pedido
+            </h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span>Produto:</span>
+                <span className="font-medium">{productData.title}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Preço:</span>
+                <span className="font-medium">{productData.price}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Frete ({selectedFrete.nome}):</span>
+                <span className="font-medium">
+                  R$ {selectedFrete.preco.toFixed(2).replace('.', ',')}
+                </span>
+              </div>
+              <div className="border-t pt-2 mt-2">
+                <div className="flex justify-between font-semibold">
+                  <span>Total:</span>
+                  <span className="text-blue-600">
+                    R$ {(parseFloat(productData.price.replace('R$ ', '').replace(',', '.')) + selectedFrete.preco).toFixed(2).replace('.', ',')}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         <div className="flex justify-center w-full mt-4">
-        <AddToCartButton 
-          onAddToCart={handleAddToCart}
-          disabled={productData.quantity === 0}
-        />
+          <AddToCartButton 
+            onAddToCart={handleAddToCart}
+            disabled={productData.quantity === 0}
+          />
         </div>
       </div>
     </main>

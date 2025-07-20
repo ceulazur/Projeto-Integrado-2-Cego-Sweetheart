@@ -17,9 +17,17 @@ interface CartItem {
   category: string;
 }
 
+interface FreteData {
+  codigo: string;
+  nome: string;
+  preco: number;
+  prazo: number;
+}
+
 const PagamentoCartao: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [frete, setFrete] = useState(DEFAULT_FRETE);
+  const [freteData, setFreteData] = useState<FreteData | null>(null);
   const [nome, setNome] = useState('');
   const [numero, setNumero] = useState('');
   const [validade, setValidade] = useState('');
@@ -31,6 +39,7 @@ const PagamentoCartao: React.FC = () => {
   const { user } = useAuth();
 
   useEffect(() => {
+    // Carregar dados do carrinho
     const stored = localStorage.getItem(getCartKey(user?.id));
     if (stored) {
       try {
@@ -39,11 +48,42 @@ const PagamentoCartao: React.FC = () => {
         setCart([]);
       }
     }
+
+    // Carregar dados do frete (compatibilidade com formato antigo e novo)
     const storedFrete = localStorage.getItem('selectedFrete');
-    if (storedFrete && !isNaN(Number(storedFrete))) {
-      setFrete(Number(storedFrete));
+    if (storedFrete) {
+      try {
+        // Tentar parsear como JSON (novo formato)
+        const parsedFrete = JSON.parse(storedFrete);
+        if (parsedFrete && typeof parsedFrete === 'object' && parsedFrete.preco) {
+          // Novo formato: objeto com dados completos
+          setFrete(parsedFrete.preco);
+          setFreteData(parsedFrete);
+        } else {
+          // Formato antigo: apenas número
+          const freteNumber = Number(storedFrete);
+          if (!isNaN(freteNumber)) {
+            setFrete(freteNumber);
+            setFreteData(null);
+          } else {
+            setFrete(DEFAULT_FRETE);
+            setFreteData(null);
+          }
+        }
+      } catch {
+        // Se não conseguir parsear como JSON, tentar como número
+        const freteNumber = Number(storedFrete);
+        if (!isNaN(freteNumber)) {
+          setFrete(freteNumber);
+          setFreteData(null);
+        } else {
+          setFrete(DEFAULT_FRETE);
+          setFreteData(null);
+        }
+      }
     } else {
       setFrete(DEFAULT_FRETE);
+      setFreteData(null);
     }
   }, [user?.id]);
 
@@ -166,7 +206,7 @@ const PagamentoCartao: React.FC = () => {
             <span>R$ {subtotal.toFixed(2).replace('.', ',')}</span>
           </div>
           <div className="flex justify-between mb-5">
-            <span>Custo de frete</span>
+            <span>Custo de frete{freteData ? ` (${freteData.nome})` : ''}</span>
             <span>R$ {frete.toFixed(2).replace('.', ',')}</span>
           </div>
           <div className="flex justify-between pt-2.5 text-lg font-semibold border-t border-solid border-t-black border-t-opacity-20">
