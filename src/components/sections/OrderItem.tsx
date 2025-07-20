@@ -5,13 +5,14 @@ interface OrderItemProps {
   imageUrl: string;
   title: string;
   quantity: number;
-  status?: 'entregue' | 'transporte' | 'devolvido' | 'reembolsado';
+  status?: 'preparando' | 'entregue' | 'transporte' | 'devolvido' | 'reembolsado';
   onTrackOrder?: () => void;
   onViewDetails?: () => void;
   onRequestRefund?: () => void;
 }
 
 const statusMap = {
+  preparando: { color: 'bg-blue-500', text: 'Preparando entrega' },
   entregue: { color: 'bg-green-500', text: 'Entregue' },
   transporte: { color: 'bg-yellow-400', text: 'Em transporte' },
   devolvido: { color: 'bg-red-500', text: 'Reembolsado' },

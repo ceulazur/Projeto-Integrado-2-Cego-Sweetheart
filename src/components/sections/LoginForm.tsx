@@ -3,7 +3,7 @@ import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
 import { useScrollTop } from '../../hooks/useScrollTop';
-import { toast } from 'sonner';
+
 import { useAuth } from '../../contexts/AuthContext';
 
 export const LoginForm: React.FC = () => {

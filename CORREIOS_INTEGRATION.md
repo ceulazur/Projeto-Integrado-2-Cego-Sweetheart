@@ -1,6 +1,60 @@
-# Integração com Correios
+# Integração com Correios e Sistema de Frete
 
-Este projeto inclui uma integração com APIs de correios para cálculo de frete e validação de CEPs.
+## 📦 **Sistema de Status de Pedidos**
+
+### **Fluxo de Status (Baseado em E-commerces Famosos)**
+
+O sistema agora segue o fluxo padrão dos principais e-commerces:
+
+1. **🔄 Preparando Entrega** (Status inicial)
+   - Pedido confirmado e pago
+   - Produto sendo preparado para envio
+   - Vendedor organizando embalagem
+
+2. **🚚 Em Transporte** 
+   - Produto enviado aos Correios
+   - Código de rastreio disponível
+   - Em trânsito para entrega
+
+3. **✅ Entregue**
+   - Produto entregue ao cliente
+   - Pedido finalizado com sucesso
+
+4. **💰 Reembolsado**
+   - Pedido cancelado/reembolsado
+   - Valor devolvido ao cliente
+
+### **Cores dos Status**
+- **Preparando**: Azul (`bg-blue-500`)
+- **Em Transporte**: Amarelo (`bg-yellow-400`) 
+- **Entregue**: Verde (`bg-green-500`)
+- **Reembolsado**: Vermelho (`bg-red-500`)
+
+### **Migração Realizada**
+- ✅ 12 pedidos migrados de "confirmado" para "preparando"
+- ✅ 2 pedidos mantidos como "entregue"
+- ✅ Novos pedidos começam automaticamente como "preparando"
+
+## 📋 **Sistema de Histórico de Pedidos**
+
+### **Ordenação Inteligente**
+O histórico de pedidos do usuário agora é organizado por data de forma inteligente:
+
+- **🔄 Ordenação Automática**: Pedidos mais recentes aparecem primeiro
+- **📅 Múltiplas Fontes de Data**: Usa `data_pedido`, `created_at` ou `data` (qual for mais recente)
+- **🔍 Filtros Mantêm Ordenação**: Mesmo com filtros ativos, a ordenação é preservada
+- **📱 Interface Melhorada**: Data do pedido visível em cada item
+
+### **Fluxo de Ordenação**
+1. **Backend**: SQL ordena por data de criação (DESC)
+2. **Frontend**: JavaScript reforça ordenação após filtros
+3. **Fallback**: Se data inválida, usa data atual
+4. **Exibição**: Data formatada em português brasileiro
+
+### **Teste de Ordenação**
+- ✅ Script `test-order-sorting.cjs` verifica ordenação
+- ✅ 11 pedidos testados com cliente ID 4
+- ✅ Ordenação correta: pedidos de 20/07/2025 antes de 18/07/2025
 
 ## Funcionalidades Implementadas
 
@@ -269,6 +323,9 @@ node test-frete-click.cjs
 
 # Teste da simulação de rastreio
 node test-rastreio-simulation.cjs
+
+# Teste da validação de cartão
+node test-cartao-validation.cjs
 ```
 
 Certifique-se de que o servidor está rodando em `http://localhost:3000`.
@@ -345,6 +402,99 @@ https://rastreamento.correios.com.br/app/index.php?objeto=BR000000049XU
 - **Função**: `handleTrackOrder()`
 - **Botão**: "LOCALIZAR PEDIDO" (linha 246)
 
+## Tela de Pagamento por Cartão Melhorada
+
+### Funcionalidades Implementadas
+
+#### 1. **Validação de Cartão**
+- **Algoritmo de Luhn**: Validação matemática do número do cartão
+- **Detecção de Bandeira**: Visa, Mastercard, American Express, Discover, Hipercard, Elo
+- **Validação de Data**: Verifica se a data não está expirada
+- **Feedback Visual**: Indicadores em tempo real (✓ Válido / ✗ Inválido)
+
+#### 2. **Parcelamento**
+- **Opções**: 1x a 12x
+- **Cálculo Automático**: Valor da parcela calculado automaticamente
+- **Exibição Clara**: Mostra valor da parcela e total
+- **Formato**: "3x de R$ 25,00 - Total: R$ 75,00"
+
+#### 3. **Seleção de Banco Emissor**
+- **Bancos Disponíveis**: Itaú, Bradesco, Santander, BB, Caixa, Nubank, Inter, C6, Outros
+- **Interface**: Dropdown com ícones e nomes
+- **Obrigatório**: Campo obrigatório para finalizar pagamento
+
+#### 4. **Cartão de Teste**
+- **Botão Dedicado**: "Preencher Cartão de Teste"
+- **Dados Automáticos**: Preenche todos os campos automaticamente
+- **Sempre Aprovado**: Cartão 4111 1111 1111 1111 sempre passa
+- **Toast de Confirmação**: Notifica quando preenchido
+
+#### 5. **Interface Melhorada**
+- **Cards Organizados**: Informações agrupadas em cards
+- **Ícones**: Lucide React icons para melhor UX
+- **Validação Visual**: Cores e indicadores de status
+- **Loading State**: Animação durante processamento
+- **Responsivo**: Design adaptado para mobile
+
+### Cartão de Teste
+```javascript
+const TEST_CARD = {
+  number: '4111 1111 1111 1111',
+  name: 'TESTE TESTE',
+  expiry: '12/25',
+  cvv: '123',
+  cpf: '123.456.789-00'
+};
+```
+
+### Validação de Cartão
+```javascript
+// Algoritmo de Luhn
+function validateCardNumber(number) {
+  const cleanNumber = number.replace(/\s/g, '');
+  if (cleanNumber.length < 13 || cleanNumber.length > 19) return false;
+  
+  let sum = 0;
+  let isEven = false;
+  
+  for (let i = cleanNumber.length - 1; i >= 0; i--) {
+    let digit = parseInt(cleanNumber[i]);
+    
+    if (isEven) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    
+    sum += digit;
+    isEven = !isEven;
+  }
+  
+  return sum % 10 === 0;
+}
+```
+
+### Detecção de Bandeira
+```javascript
+function detectCardBrand(number) {
+  const cleanNumber = number.replace(/\s/g, '');
+  
+  if (/^4/.test(cleanNumber)) return 'Visa';
+  if (/^5[1-5]/.test(cleanNumber)) return 'Mastercard';
+  if (/^3[47]/.test(cleanNumber)) return 'American Express';
+  if (/^6/.test(cleanNumber)) return 'Discover';
+  if (/^(606282|3841)/.test(cleanNumber)) return 'Hipercard';
+  if (/^(636368|438935|504175|451416|636297)/.test(cleanNumber)) return 'Elo';
+  
+  return 'Cartão';
+}
+```
+
+### Localização no Código
+- **Arquivo**: `src/pages/PagamentoCartao.tsx`
+- **Componentes**: Cards organizados por seção
+- **Validação**: Funções de validação em tempo real
+- **Teste**: Script `test-cartao-validation.cjs`
+
 ## Limitações Atuais
 
 ### 1. **API Externa**
@@ -361,6 +511,8 @@ https://rastreamento.correios.com.br/app/index.php?objeto=BR000000049XU
 ### 4. **Rastreio Simulado**
 - Códigos de rastreio são simulados (não reais)
 - Não há rastreamento real de pacotes
+
+
 
 ## Melhorias Futuras
 

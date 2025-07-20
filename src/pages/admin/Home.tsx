@@ -3,7 +3,7 @@ import { useProducts } from "../../hooks/useProducts";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 
-type PedidoStatus = "transporte" | "entregue" | "reembolsado";
+type PedidoStatus = "preparando" | "transporte" | "entregue" | "reembolsado";
 type Pedido = {
   id: number;
   clienteNome: string;

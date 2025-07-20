@@ -5,7 +5,7 @@ interface Order {
   id: string;
   clienteNome: string;
   clienteId: string;
-  status: 'entregue' | 'transporte' | 'devolvido';
+  status: 'preparando' | 'entregue' | 'transporte' | 'devolvido';
   statusEntrega: string;
   data: string;
   produtoId: string;

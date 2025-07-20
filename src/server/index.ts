@@ -776,8 +776,8 @@ app.post('/api/pedidos', express.json(), (req: Request, res: Response) => {
     stmt.run(
       clienteNome,
       clienteId,
-      'transporte',
-      'Em transporte',
+      'preparando',
+      'Preparando entrega',
       produtoId,
       produtoNome,
       produtoImageUrl || '',
@@ -847,6 +847,9 @@ app.put('/api/pedidos/:id', express.json(), (req: Request, res: Response) => {
     // Mapear status para statusEntrega
     let statusEntrega = '';
     switch (status) {
+      case 'preparando':
+        statusEntrega = 'Preparando entrega';
+        break;
       case 'transporte':
         statusEntrega = 'Em transporte';
         break;
@@ -891,7 +894,12 @@ app.get('/api/pedidos/cliente/:clienteId', (req: Request, res: Response) => {
         END as data_pedido
       FROM pedidos 
       WHERE clienteId = ? 
-      ORDER BY created_at DESC
+      ORDER BY 
+        CASE 
+          WHEN created_at IS NOT NULL AND created_at != '' AND created_at != 'NULL' AND datetime(created_at) IS NOT NULL
+          THEN datetime(created_at)
+          ELSE datetime('now')
+        END DESC
     `).all(clienteId);
     
     res.json(pedidos);

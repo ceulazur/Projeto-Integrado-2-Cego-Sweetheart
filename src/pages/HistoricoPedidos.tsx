@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Header } from '../components/layout/Header';
-import { useToast } from '../hooks/use-toast';
+
 
 interface Order {
   id: string;
@@ -35,6 +35,8 @@ const OrderDetailsModal: React.FC<{
 
   const getStatusInfo = (status: string) => {
     switch (status) {
+      case 'preparando':
+        return { color: 'bg-blue-500', text: 'Preparando entrega', bgColor: 'bg-blue-50', borderColor: 'border-blue-200' };
       case 'entregue':
         return { color: 'bg-green-500', text: 'Entregue', bgColor: 'bg-green-50', borderColor: 'border-green-200' };
       case 'transporte':
@@ -205,12 +207,15 @@ const SimpleOrderItem: React.FC<{
   title: string;
   quantity: number;
   status: string;
+  orderDate: string;
   onTrackOrder: () => void;
   onViewDetails: () => void;
   onRequestRefund: () => void;
-}> = ({ imageUrl, title, quantity, status, onTrackOrder, onViewDetails, onRequestRefund }) => {
+}> = ({ imageUrl, title, quantity, status, orderDate, onTrackOrder, onViewDetails, onRequestRefund }) => {
   const getStatusInfo = (status: string) => {
     switch (status) {
+      case 'preparando':
+        return { color: 'bg-blue-500', text: 'Preparando entrega' };
       case 'entregue':
         return { color: 'bg-green-500', text: 'Entregue' };
       case 'transporte':
@@ -224,21 +229,37 @@ const SimpleOrderItem: React.FC<{
 
   const statusInfo = getStatusInfo(status);
 
+  // Função para formatar a data
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      if (date.getFullYear() < 1970) {
+        return new Date().toLocaleDateString('pt-BR');
+      }
+      return date.toLocaleDateString('pt-BR');
+    } catch (error) {
+      return new Date().toLocaleDateString('pt-BR');
+    }
+  };
+
   return (
     <article className="flex items-stretch gap-2 font-medium">
       <div className="text-xs text-black grow shrink-0 basis-0 w-fit">
         <div className="flex min-h-[86px] gap-[11px]">
           <img
-            src={imageUrl || '/placeholder.svg'}
+            src={imageUrl}
             alt={title}
             className="aspect-[0.79] object-contain w-[68px] shadow-[1px_4px_4px_rgba(0,0,0,0.25)] shrink-0"
           />
           <div className="w-[185px] flex flex-col justify-center">
-            <span className="font-light">{title}</span>
+            <span className="font-light">{title} </span>
             <br />x {quantity}
             <div className="flex items-center gap-2 mt-1">
               <span className={`inline-block w-3 h-3 rounded-full ${statusInfo.color}`}></span>
               <span className="text-xs font-semibold">{statusInfo.text}</span>
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              Pedido em: {formatDate(orderDate)}
             </div>
           </div>
         </div>
@@ -277,7 +298,6 @@ const SimpleOrderItem: React.FC<{
 const HistoricoPedidos: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -323,12 +343,8 @@ const HistoricoPedidos: React.FC = () => {
     // Abrir em nova aba
     window.open(trackingUrl, '_blank');
     
-    // Mostrar toast de confirmação
-    toast({
-      title: "Rastreamento Aberto",
-      description: `Código de rastreio: ${trackingCode}`,
-      duration: 3000,
-    });
+    // Mostrar confirmação
+    console.log(`Rastreamento aberto para código: ${trackingCode}`);
   };
 
   // Função para gerar código de rastreio determinístico
@@ -362,9 +378,16 @@ const HistoricoPedidos: React.FC = () => {
     navigate(`/solicitar-reembolso/${orderId}`);
   };
 
-  const filteredOrders = orders.filter(order =>
-    order.produtoNome.toLowerCase().includes(filter.toLowerCase())
-  );
+  const filteredOrders = orders
+    .filter(order =>
+      order.produtoNome.toLowerCase().includes(filter.toLowerCase())
+    )
+    .sort((a, b) => {
+      // Ordenar por data de criação (mais recente primeiro)
+      const dateA = new Date(a.data_pedido || a.created_at || a.data);
+      const dateB = new Date(b.data_pedido || b.created_at || b.data);
+      return dateB.getTime() - dateA.getTime();
+    });
 
   if (!user?.id) {
     return null;
@@ -427,6 +450,7 @@ const HistoricoPedidos: React.FC = () => {
                   title={order.produtoNome}
                   quantity={order.quantidade}
                   status={order.status}
+                  orderDate={order.data_pedido || order.created_at || order.data}
                   onTrackOrder={() => handleTrackOrder(order.id)}
                   onViewDetails={() => handleViewDetails(order)}
                   onRequestRefund={() => handleRequestRefund(order.id)}

@@ -3,7 +3,7 @@ import { UserContext } from "../../contexts/UserContext";
 import type { Usuario } from "../../contexts/UserContext";
 import { useFilters } from '../../contexts/FilterContext';
 
-type PedidoStatus = "transporte" | "entregue" | "reembolsado";
+type PedidoStatus = "preparando" | "transporte" | "entregue" | "reembolsado";
 
 type Pedido = {
   id: number;
@@ -24,6 +24,7 @@ type Pedido = {
 };
 
 const statusColors: Record<PedidoStatus, string> = {
+  "preparando": "text-blue-600 font-semibold",
   "transporte": "text-yellow-600 font-semibold",
   "entregue": "text-green-600 font-semibold",
   "reembolsado": "text-red-600 font-semibold",
@@ -32,6 +33,8 @@ const statusColors: Record<PedidoStatus, string> = {
 // Função para mapear status do banco para exibição
 const getStatusDisplay = (status: string): string => {
   switch (status) {
+    case 'preparando':
+      return 'Preparando Entrega';
     case 'transporte':
       return 'Em Transporte';
     case 'entregue':
@@ -197,6 +200,7 @@ const Pedidos = () => {
               className="border border-gray-300 rounded px-3 py-2 bg-white"
             >
               <option value="todos">Todos os Pedidos</option>
+              <option value="preparando">Preparando Entrega</option>
               <option value="transporte">Em Transporte</option>
               <option value="entregue">Entregue</option>
               <option value="reembolsado">Reembolsado</option>
@@ -325,6 +329,7 @@ const Pedidos = () => {
                 value={statusSelecionado}
                 onChange={(e) => setStatusSelecionado(e.target.value as PedidoStatus)}
               >
+                <option value="preparando">Preparando Entrega</option>
                 <option value="transporte">Em Transporte</option>
                 <option value="entregue">Entregue</option>
                 <option value="reembolsado">Reembolsado</option>
