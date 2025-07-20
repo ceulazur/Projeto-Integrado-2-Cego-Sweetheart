@@ -129,124 +129,149 @@ const Entrega: React.FC = () => {
   }
 
   return (
-    <main className="relative mx-auto my-0 w-full min-h-screen bg-white max-w-[480px] flex flex-col items-stretch text-2xl font-normal pt-4 pb-[122px]">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
       <Header />
-      <div className="z-10 w-full text-black font-medium -mt-2.5 px-[5px]">
-        <div className="mt-[30px]">
+      
+      {/* Container principal responsivo */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Banner */}
+        <div className="mb-8">
           <img
             src="/checkout-banner.svg"
             alt="Banner checkout"
-            className="aspect-[2.08] object-contain w-full rounded-[20px]"
+            className="w-full max-w-4xl mx-auto rounded-2xl shadow-lg"
           />
         </div>
-      </div>
-      <nav className="mb-5 text-sm font-light text-black max-sm:text-xs px-4">
-        <span className="font-bold text-black">Entrega</span> <span className="font-normal text-zinc-500">&gt; Pagamento</span>
-      </nav>
-      <section className="px-4 mb-10">
-        <Card className="p-5 mb-10 rounded-3xl border border-black border-solid bg-white bg-opacity-90">
-          {cart.length > 0 && (
-            <div className="flex flex-col gap-4 pb-5 mb-5 border-b border-solid border-b-black border-b-opacity-20">
-              {cart.map((item) => (
-                <div key={item.id} className="flex gap-4 items-center">
-                  <img src={item.imageUrl} alt={item.title} className="shrink-0 rounded-lg h-[75px] w-[59px] object-cover bg-gray-200" />
-                  <div>
-                    <h3 className="mb-1.5 text-base">{item.title}</h3>
-                    <p className="text-base text-stone-500">x {item.quantity}</p>
-                  </div>
+
+        {/* Breadcrumb */}
+        <nav className="mb-8 text-lg font-medium text-gray-600 max-w-4xl mx-auto">
+          <span className="font-bold text-black">Entrega</span> <span className="text-gray-500">&gt; Pagamento</span>
+        </nav>
+
+        <div className="max-w-4xl mx-auto">
+          <section className="mb-12">
+            <Card className="p-8 mb-12 rounded-2xl border-2 border-gray-200 bg-white shadow-lg">
+              {cart.length > 0 && (
+                <div className="flex flex-col gap-6 pb-6 mb-6 border-b-2 border-gray-100">
+                  {cart.map((item) => (
+                    <div key={item.id} className="flex gap-6 items-center">
+                      <img 
+                        src={item.imageUrl} 
+                        alt={item.title} 
+                        className="w-20 h-20 lg:w-24 lg:h-24 rounded-xl object-cover bg-gray-200 shadow-sm" 
+                      />
+                      <div className="flex-1">
+                        <h3 className="text-xl lg:text-2xl font-semibold mb-2">{item.title}</h3>
+                        <p className="text-lg text-gray-600">x {item.quantity}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
+              <div className="space-y-4 text-lg lg:text-xl">
+                <div className="flex justify-between">
+                  <span className="font-medium">Subtotal</span>
+                  <span className="font-semibold">R$ {subtotal.toFixed(2).replace('.', ',')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-medium">Custo de frete</span>
+                  <span className="font-semibold">R$ {FRETE.toFixed(2).replace('.', ',')}</span>
+                </div>
+                <div className="flex justify-between pt-4 text-xl lg:text-2xl font-bold border-t-2 border-gray-200">
+                  <span>Total</span>
+                  <span>R$ {total.toFixed(2).replace('.', ',')}</span>
+                </div>
+              </div>
+            </Card>
+          </section>
+          
+          <form className="flex flex-col gap-6" onSubmit={handleContinue} autoComplete="off">
+            <h2 className="text-4xl lg:text-5xl font-bold text-black mb-8">Dados da entrega</h2>
+            
+            <div className="grid gap-6">
+              <Input
+                id="street"
+                placeholder="Rua"
+                value={street}
+                onChange={e => setStreet(e.target.value)}
+                required
+                className="h-14 text-lg px-6 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200"
+              />
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Input
+                  id="city"
+                  placeholder="Cidade"
+                  value={city}
+                  onChange={e => setCity(e.target.value)}
+                  required
+                  disabled={enderecoCompleto !== null}
+                  className="h-14 text-lg px-6 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 disabled:bg-gray-100"
+                />
+                
+                <div className="relative">
+                  <Input
+                    id="cep"
+                    placeholder="CEP"
+                    value={cep}
+                    onChange={handleCepChange}
+                    required
+                    maxLength={9}
+                    className="h-14 text-lg px-6 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200"
+                  />
+                  {cepLoading && (
+                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                      <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Input
+                  id="number"
+                  placeholder="Número"
+                  value={number}
+                  onChange={e => setNumber(e.target.value)}
+                  required
+                  className="h-14 text-lg px-6 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200"
+                />
+                
+                <Input
+                  id="complement"
+                  placeholder="Complemento (opcional)"
+                  value={complement}
+                  onChange={e => setComplement(e.target.value)}
+                  className="h-14 text-lg px-6 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200"
+                />
+              </div>
+              
+              <Input
+                id="cpfCnpj"
+                placeholder="CPF/CNPJ"
+                value={cpfCnpj}
+                onChange={e => setCpfCnpj(maskCpf(e.target.value))}
+                required
+                maxLength={14}
+                className="h-14 text-lg px-6 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200"
+              />
             </div>
-          )}
-          <div className="flex justify-between mb-2.5">
-            <span>Subtotal</span>
-            <span>R$ {subtotal.toFixed(2).replace('.', ',')}</span>
-          </div>
-          <div className="flex justify-between mb-5">
-            <span>Custo de frete</span>
-            <span>R$ {FRETE.toFixed(2).replace('.', ',')}</span>
-          </div>
-          <div className="flex justify-between pt-2.5 text-lg font-semibold border-t border-solid border-t-black border-t-opacity-20">
-            <span>Total</span>
-            <span>R$ {total.toFixed(2).replace('.', ',')}</span>
-          </div>
-        </Card>
-      </section>
-      <form className="flex flex-col gap-4 px-4" onSubmit={handleContinue} autoComplete="off">
-        <h2 className="mb-6 text-4xl font-bold text-black max-sm:mb-5 max-sm:text-3xl">Dados da entrega</h2>
-        <Input
-          id="street"
-          placeholder="Rua"
-          value={street}
-          onChange={e => setStreet(e.target.value)}
-          required
-        />
-        <div className="flex gap-3.5 max-md:flex-col max-md:gap-2.5">
-          <Input
-            id="city"
-            placeholder="Cidade"
-            value={city}
-            onChange={e => setCity(e.target.value)}
-            required
-            disabled={enderecoCompleto !== null}
-          />
-          <div className="relative">
-          <Input
-            id="cep"
-            placeholder="CEP"
-            value={cep}
-              onChange={handleCepChange}
-            required
-              maxLength={9}
-              inputMode="numeric"
-            />
-            {cepLoading && (
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
+            
+            {cepError && (
+              <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 text-red-700 text-lg">
+                {cepError}
               </div>
             )}
-          </div>
+            
+            <Button
+              type="submit"
+              className="w-full bg-gradient-to-r from-black to-gray-800 text-white rounded-2xl py-6 text-2xl font-bold mt-8 hover:from-gray-800 hover:to-black transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
+              CONTINUAR
+            </Button>
+          </form>
         </div>
-        
-        {cepError && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-            <p className="text-red-800 text-sm">{cepError}</p>
-          </div>
-        )}
-        
-        {enderecoCompleto && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-            <p className="text-green-800 text-sm">
-              <strong>Endereço encontrado:</strong> {enderecoCompleto.logradouro}, {enderecoCompleto.bairro}, {enderecoCompleto.localidade} - {enderecoCompleto.uf}
-            </p>
-          </div>
-        )}
-        <div className="flex gap-3.5 max-md:flex-col max-md:gap-2.5">
-          <Input
-            id="number"
-            placeholder="Número"
-            value={number}
-            onChange={e => setNumber(e.target.value)}
-            required
-          />
-          <Input
-            id="complement"
-            placeholder="Complemento (Opcional)"
-            value={complement}
-            onChange={e => setComplement(e.target.value)}
-          />
-        </div>
-        <Input
-          id="cpfCnpj"
-          placeholder="CPF"
-          value={cpfCnpj}
-          onChange={e => setCpfCnpj(maskCpf(e.target.value))}
-          required
-          maxLength={14}
-          inputMode="numeric"
-        />
-        <Button type="submit" className="mt-8 mb-4 bg-black text-white focus:ring-black focus:border-black">CONTINUAR</Button>
-      </form>
+      </div>
     </main>
   );
 };

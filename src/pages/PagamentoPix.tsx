@@ -180,59 +180,90 @@ const PagamentoPix: React.FC = () => {
   }
 
   return (
-    <main className="relative mx-auto my-0 w-full min-h-screen bg-white max-w-[480px] flex flex-col items-stretch text-2xl font-normal pt-4 pb-[122px]">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
       <Header />
-      <div className="z-10 w-full text-black font-medium -mt-2.5 px-[5px]">
-        <div className="mt-[30px]">
+      
+      {/* Container principal responsivo */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Banner */}
+        <div className="mb-8">
           <img
             src="/checkout-banner.svg"
             alt="Banner checkout"
-            className="aspect-[2.08] object-contain w-full rounded-[20px]"
+            className="w-full max-w-4xl mx-auto rounded-2xl shadow-lg"
           />
         </div>
-      </div>
-      <nav className="mb-5 text-sm font-light text-black max-sm:text-xs px-4 mt-[17px]">
-        <span className="font-normal text-zinc-500">Entrega &gt; </span>
-        <span className="font-bold text-black">Pagamento</span>
-      </nav>
-      <div className="px-4">
-        <h2 className="text-3xl font-bold mb-2 text-black">Pagamento via PIX</h2>
-        <Card className="p-5 mb-10 rounded-3xl border border-black border-solid bg-white bg-opacity-90">
-          <div className="flex flex-col items-center gap-4 mb-6">
-            <span className="text-lg font-semibold text-black">Use o código abaixo para pagar via PIX:</span>
-            <span className="text-xs font-mono bg-gray-100 px-2 py-2 rounded-lg border border-dashed border-gray-400 select-all break-all">
-              {codigoPix}
-            </span>
-            <span className="text-base text-zinc-700 mt-2">Este código expira em <span className="font-bold text-black">{formatarTempo(tempoRestante)}</span></span>
-          </div>
-          <div className="flex flex-col gap-4 pb-5 mb-5 border-b border-solid border-b-black border-b-opacity-20">
-            {cart.map((item) => (
-              <div key={item.id} className="flex gap-4 items-center">
-                <img src={item.imageUrl} alt={item.title} className="shrink-0 rounded-lg h-[75px] w-[59px] object-cover bg-gray-200" />
-                <div>
-                  <h3 className="mb-1.5 text-base">{item.title}</h3>
-                  <p className="text-base text-stone-500">x {item.quantity}</p>
+
+        {/* Breadcrumb */}
+        <nav className="mb-8 text-lg font-medium text-gray-600 max-w-4xl mx-auto">
+          <span className="text-gray-500">Entrega &gt; </span>
+          <span className="font-bold text-black">Pagamento</span>
+        </nav>
+
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-4xl lg:text-5xl font-bold mb-8 text-black">Pagamento via PIX</h2>
+          
+          <Card className="p-8 mb-12 rounded-2xl border-2 border-gray-200 bg-white shadow-lg">
+            <div className="text-center mb-8">
+              <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-6 mb-6">
+                <div className="text-2xl lg:text-3xl font-bold text-green-600 mb-4">
+                  Desconto de 3% aplicado!
+                </div>
+                <div className="text-lg text-green-700">
+                  Total com desconto: R$ {total.toFixed(2).replace('.', ',')}
                 </div>
               </div>
-            ))}
-          </div>
-          <div className="flex justify-between mb-2.5">
-            <span>Subtotal</span>
-            <span>R$ {subtotal.toFixed(2).replace('.', ',')}</span>
-          </div>
-          <div className="flex justify-between mb-5">
-            <span>Custo de frete{freteData ? ` (${freteData.nome})` : ''}</span>
-            <span>R$ {frete.toFixed(2).replace('.', ',')}</span>
-          </div>
-          <div className="flex justify-between mb-5 font-semibold">
-            <span>Desconto (3%)</span>
-            <span>-R$ {descontoValor.toFixed(2).replace('.', ',')}</span>
-          </div>
-          <div className="flex justify-between pt-2.5 text-lg font-semibold border-t border-solid border-t-black border-t-opacity-20">
-            <span>Total</span>
-            <span>R$ {total.toFixed(2).replace('.', ',')}</span>
-          </div>
-        </Card>
+              
+              <div className="bg-gray-50 rounded-2xl p-6 mb-6">
+                <div className="text-lg font-semibold text-gray-700 mb-4">
+                  Tempo restante para pagamento:
+                </div>
+                <div className="text-4xl lg:text-5xl font-bold text-red-600 font-mono">
+                  {formatarTempo(tempoRestante)}
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-6">
+                <div className="text-xl lg:text-2xl font-bold text-blue-600 mb-4">
+                  Código PIX
+                </div>
+                <div className="bg-white border-2 border-blue-300 rounded-xl p-4 mb-4">
+                  <code className="text-sm lg:text-base break-all text-gray-800 font-mono">
+                    {codigoPix}
+                  </code>
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(codigoPix);
+                    alert('Código PIX copiado!');
+                  }}
+                  className="bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+                >
+                  Copiar Código
+                </button>
+              </div>
+            </div>
+            
+            <div className="space-y-4 text-lg lg:text-xl">
+              <div className="flex justify-between">
+                <span className="font-medium">Subtotal</span>
+                <span className="font-semibold">R$ {subtotal.toFixed(2).replace('.', ',')}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Custo de frete{freteData ? ` (${freteData.nome})` : ''}</span>
+                <span className="font-semibold">R$ {frete.toFixed(2).replace('.', ',')}</span>
+              </div>
+              <div className="flex justify-between text-green-600">
+                <span className="font-medium">Desconto (3%)</span>
+                <span className="font-semibold">-R$ {descontoValor.toFixed(2).replace('.', ',')}</span>
+              </div>
+              <div className="flex justify-between pt-4 text-xl lg:text-2xl font-bold border-t-2 border-gray-200">
+                <span>Total</span>
+                <span>R$ {total.toFixed(2).replace('.', ',')}</span>
+              </div>
+            </div>
+          </Card>
+        </div>
       </div>
     </main>
   );

@@ -33,6 +33,15 @@ interface CardInfo {
   isValid: boolean;
 }
 
+interface FormErrors {
+  numero?: string;
+  nome?: string;
+  validade?: string;
+  cvv?: string;
+  cpf?: string;
+  selectedBank?: string;
+}
+
 const BANKS = [
   { id: 'itau', name: 'Itaú', logo: '🏦' },
   { id: 'bradesco', name: 'Bradesco', logo: '🏦' },
@@ -70,6 +79,7 @@ const PagamentoCartao: React.FC = () => {
   const updateProduct = useUpdateProduct();
   const { data: allProducts } = useProducts();
   const { user } = useAuth();
+  const [errors, setErrors] = useState<FormErrors>({});
 
   useEffect(() => {
     // Carregar dados do carrinho
@@ -187,13 +197,25 @@ const PagamentoCartao: React.FC = () => {
     return value.slice(0, 5);
   };
 
-  // Máscara para CPF
+  // Máscara para CPF (corrigida para aceitar só 11 dígitos)
   const maskCpf = (value: string) => {
-    value = value.replace(/\D/g, '');
+    value = value.replace(/\D/g, '').slice(0, 11);
     value = value.replace(/(\d{3})(\d)/, '$1.$2');
     value = value.replace(/(\d{3})(\d)/, '$1.$2');
     value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
     return value;
+  };
+
+  // Validação dos campos
+  const validateFields = (): FormErrors => {
+    const newErrors: FormErrors = {};
+    if (!numero || numero.length !== 19 || !cardInfo.isValid) newErrors.numero = 'Número do cartão inválido';
+    if (!nome) newErrors.nome = 'Nome obrigatório';
+    if (!validade || validade.length !== 5 || !validateExpiry(validade)) newErrors.validade = 'Validade inválida';
+    if (!cvv || cvv.length < 3) newErrors.cvv = 'CVV inválido';
+    if (!cpf || cpf.length !== 14) newErrors.cpf = 'CPF inválido';
+    if (!selectedBank) newErrors.selectedBank = 'Selecione o banco';
+    return newErrors;
   };
 
   // Atualizar informações do cartão
@@ -231,7 +253,9 @@ const PagamentoCartao: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid) return;
+    const validation = validateFields();
+    setErrors(validation);
+    if (Object.keys(validation).length > 0) return;
 
     setIsProcessing(true);
 
@@ -311,247 +335,207 @@ const PagamentoCartao: React.FC = () => {
   };
 
   return (
-    <main className="relative mx-auto my-0 w-full min-h-screen bg-white max-w-[480px] flex flex-col items-stretch text-2xl font-normal pt-4 pb-[122px]">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
       <Header />
       
-      {/* Banner */}
-      <div className="z-10 w-full text-black font-medium -mt-2.5 px-[5px]">
-        <div className="mt-[30px]">
+      {/* Container principal responsivo */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Banner */}
+        <div className="mb-8">
           <img
             src="/checkout-banner.svg"
             alt="Banner checkout"
-            className="aspect-[2.08] object-contain w-full rounded-[20px]"
+            className="w-full max-w-4xl mx-auto rounded-2xl shadow-lg"
           />
         </div>
-      </div>
 
-      {/* Breadcrumb */}
-      <nav className="mb-5 text-sm font-light text-black max-sm:text-xs px-4 mt-[17px]">
-        <span className="font-normal text-zinc-500">Entrega &gt; </span>
-        <span className="font-bold text-black">Pagamento</span>
-      </nav>
+        {/* Breadcrumb */}
+        <nav className="mb-8 text-lg font-medium text-gray-600 max-w-4xl mx-auto">
+          <span className="text-gray-500">Entrega &gt; </span>
+          <span className="font-bold text-black">Pagamento</span>
+        </nav>
 
-      <div className="px-4">
-        <h2 className="text-3xl font-bold mb-2 text-black">Pagamento com Cartão de Crédito</h2>
-        
-        {/* Resumo da Compra */}
-        <Card className="p-5 mb-6 rounded-3xl border border-black border-solid bg-white bg-opacity-90">
-          {cart.length > 0 && (
-            <div className="flex flex-col gap-4 pb-5 mb-5 border-b border-solid border-b-black border-b-opacity-20">
-              {cart.map((item) => (
-                <div key={item.id} className="flex gap-4 items-center">
-                  <img src={item.imageUrl} alt={item.title} className="shrink-0 rounded-lg h-[75px] w-[59px] object-cover bg-gray-200" />
-                  <div>
-                    <h3 className="mb-1.5 text-base">{item.title}</h3>
-                    <p className="text-base text-stone-500">x {item.quantity}</p>
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-4xl lg:text-5xl font-bold mb-8 text-black">Pagamento com Cartão</h2>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Formulário do Cartão */}
+            <Card className="p-8 rounded-2xl border-2 border-gray-200 bg-white shadow-lg">
+              <div className="flex items-center gap-3 mb-8">
+                <CreditCardIcon className="w-8 h-8 text-blue-600" />
+                <h3 className="text-2xl lg:text-3xl font-bold text-gray-900">Dados do Cartão</h3>
+              </div>
+              
+              <form className="space-y-6" onSubmit={handleSubmit}>
+                <div>
+                  <label className="block text-lg font-semibold text-gray-700 mb-3">
+                    Número do Cartão
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={numero}
+                      onChange={(e) => setNumero(maskCardNumber(e.target.value))}
+                      placeholder="0000 0000 0000 0000"
+                      className="w-full h-14 text-lg px-6 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200"
+                      required
+                    />
+                    {errors.numero && <p className="text-red-600 text-sm mt-1">{errors.numero}</p>}
+                    {cardInfo.brand && (
+                      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-sm font-semibold text-blue-600">
+                        {cardInfo.brand}
+                      </div>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-          
-          <div className="flex justify-between mb-2.5">
-            <span>Subtotal</span>
-            <span>R$ {subtotal.toFixed(2).replace('.', ',')}</span>
-          </div>
-          <div className="flex justify-between mb-5">
-            <span>Custo de frete{freteData ? ` (${freteData.nome})` : ''}</span>
-            <span>R$ {frete.toFixed(2).replace('.', ',')}</span>
-          </div>
-          <div className="flex justify-between pt-2.5 text-lg font-semibold border-t border-solid border-t-black border-t-opacity-20">
-            <span>Total</span>
-            <span>R$ {total.toFixed(2).replace('.', ',')}</span>
-          </div>
-        </Card>
-
-        {/* Botão Cartão de Teste */}
-        <Button
-          onClick={fillTestCard}
-          className="w-full mb-6 border-2 border-dashed border-blue-500 text-blue-600 hover:bg-blue-50 rounded-2xl py-3 bg-white"
-        >
-          <CreditCardIcon className="w-5 h-5 mr-2" />
-          Preencher Cartão de Teste
-        </Button>
-
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit} autoComplete="off">
-          {/* Informações do Cartão */}
-          <Card className="p-5 rounded-2xl border-2 border-gray-200">
-            <div className="flex items-center gap-2 mb-4">
-              <CreditCard className="w-5 h-5 text-gray-600" />
-              <h3 className="text-lg font-semibold">Informações do Cartão</h3>
-              {cardInfo.brand && (
-                <span className="ml-auto text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                  {cardInfo.brand}
-                </span>
-              )}
-            </div>
-
-            {/* Nome do Titular */}
-            <label className="block mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <User className="w-4 h-4 text-gray-600" />
-                <span className="text-sm font-medium">Nome do Titular</span>
+                
+                <div>
+                  <label className="block text-lg font-semibold text-gray-700 mb-3">
+                    Nome no Cartão
+                  </label>
+                  <input
+                    type="text"
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value.toUpperCase())}
+                    placeholder="NOME COMO ESTÁ NO CARTÃO"
+                    className="w-full h-14 text-lg px-6 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200"
+                    required
+                  />
+                  {errors.nome && <p className="text-red-600 text-sm mt-1">{errors.nome}</p>}
+                </div>
+                
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-lg font-semibold text-gray-700 mb-3">
+                      Validade
+                    </label>
+                    <input
+                      type="text"
+                      value={validade}
+                      onChange={(e) => setValidade(maskValidade(e.target.value))}
+                      placeholder="MM/AA"
+                      className="w-full h-14 text-lg px-6 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200"
+                      required
+                    />
+                    {errors.validade && <p className="text-red-600 text-sm mt-1">{errors.validade}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-lg font-semibold text-gray-700 mb-3">
+                      CVV
+                    </label>
+                    <input
+                      type="text"
+                      value={cvv}
+                      onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      placeholder="123"
+                      className="w-full h-14 text-lg px-6 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200"
+                      required
+                    />
+                    {errors.cvv && <p className="text-red-600 text-sm mt-1">{errors.cvv}</p>}
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-lg font-semibold text-gray-700 mb-3">
+                    CPF do Titular
+                  </label>
+                  <input
+                    type="text"
+                    value={cpf}
+                    onChange={(e) => setCpf(maskCpf(e.target.value))}
+                    placeholder="000.000.000-00"
+                    className="w-full h-14 text-lg px-6 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200"
+                    required
+                  />
+                  {errors.cpf && <p className="text-red-600 text-sm mt-1">{errors.cpf}</p>}
+                </div>
+                
+                <div>
+                  <label className="block text-lg font-semibold text-gray-700 mb-3">
+                    Banco Emissor
+                  </label>
+                  <Select value={selectedBank} onValueChange={setSelectedBank}>
+                    <SelectTrigger className="h-14 text-lg px-6 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200">
+                      <SelectValue placeholder="Selecione o banco" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {BANKS.map((bank) => (
+                        <SelectItem key={bank.id} value={bank.id}>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xl">{bank.logo}</span>
+                            <span className="text-lg">{bank.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.selectedBank && <p className="text-red-600 text-sm mt-1">{errors.selectedBank}</p>}
+                </div>
+                
+                <div>
+                  <label className="block text-lg font-semibold text-gray-700 mb-3">
+                    Parcelas
+                  </label>
+                  <Select value={installments} onValueChange={setInstallments}>
+                    <SelectTrigger className="h-14 text-lg px-6 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((num) => (
+                        <SelectItem key={num} value={num.toString()}>
+                          {num}x de R$ {installmentValue.toFixed(2).replace('.', ',')}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <Button
+                  type="submit"
+                  disabled={isProcessing}
+                  className="w-full bg-gradient-to-r from-black to-gray-800 text-white rounded-2xl py-6 text-2xl font-bold hover:from-gray-800 hover:to-black transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  {isProcessing ? 'PROCESSANDO...' : 'FINALIZAR PAGAMENTO'}
+                </Button>
+              </form>
+            </Card>
+            
+            {/* Resumo da Compra */}
+            <Card className="p-8 rounded-2xl border-2 border-gray-200 bg-white shadow-lg h-fit">
+              <div className="flex items-center gap-3 mb-8">
+                <Building2 className="w-8 h-8 text-green-600" />
+                <h3 className="text-2xl lg:text-3xl font-bold text-gray-900">Resumo da Compra</h3>
               </div>
-              <input
-                type="text"
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={nome}
-                onChange={e => setNome(e.target.value)}
-                required
-                maxLength={50}
-                placeholder="Como está impresso no cartão"
-              />
-            </label>
-
-            {/* Número do Cartão */}
-            <label className="block mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <CreditCard className="w-4 h-4 text-gray-600" />
-                <span className="text-sm font-medium">Número do Cartão</span>
-                {numero.length > 0 && (
-                  <span className={`ml-auto text-xs px-2 py-1 rounded-full ${
-                    cardInfo.isValid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
-                    {cardInfo.isValid ? '✓ Válido' : '✗ Inválido'}
-                  </span>
+              
+              <div className="space-y-4 text-lg lg:text-xl">
+                <div className="flex justify-between">
+                  <span className="font-medium">Subtotal</span>
+                  <span className="font-semibold">R$ {subtotal.toFixed(2).replace('.', ',')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-medium">Custo de frete{freteData ? ` (${freteData.nome})` : ''}</span>
+                  <span className="font-semibold">R$ {frete.toFixed(2).replace('.', ',')}</span>
+                </div>
+                <div className="flex justify-between pt-4 text-xl lg:text-2xl font-bold border-t-2 border-gray-200">
+                  <span>Total</span>
+                  <span>R$ {total.toFixed(2).replace('.', ',')}</span>
+                </div>
+                {parseInt(installments) > 1 && (
+                  <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mt-4">
+                    <div className="text-center">
+                      <div className="text-lg font-semibold text-blue-600 mb-2">
+                        Parcelado em {installments}x
+                      </div>
+                      <div className="text-xl font-bold text-blue-700">
+                        R$ {installmentValue.toFixed(2).replace('.', ',')} por parcela
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
-              <input
-                type="text"
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={numero}
-                onChange={e => setNumero(maskCardNumber(e.target.value))}
-                required
-                maxLength={19}
-                inputMode="numeric"
-                placeholder="0000 0000 0000 0000"
-              />
-            </label>
-
-            {/* Validade e CVV */}
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <label className="block">
-                <div className="flex items-center gap-2 mb-2">
-                  <Calendar className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm font-medium">Validade</span>
-                  {validade.length === 5 && (
-                    <span className={`ml-auto text-xs px-2 py-1 rounded-full ${
-                      validateExpiry(validade) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {validateExpiry(validade) ? '✓ Válida' : '✗ Inválida'}
-                    </span>
-                  )}
-                </div>
-                <input
-                  type="text"
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  value={validade}
-                  onChange={e => setValidade(maskValidade(e.target.value))}
-                  required
-                  maxLength={5}
-                  inputMode="numeric"
-                  placeholder="MM/AA"
-                />
-              </label>
-              <label className="block">
-                <div className="flex items-center gap-2 mb-2">
-                  <Lock className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm font-medium">CVV</span>
-                </div>
-                <input
-                  type="text"
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  value={cvv}
-                  onChange={e => setCvv(e.target.value.replace(/\D/g, '').slice(0,4))}
-                  required
-                  maxLength={4}
-                  inputMode="numeric"
-                  placeholder="123"
-                />
-              </label>
-            </div>
-
-            {/* CPF */}
-            <label className="block mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <User className="w-4 h-4 text-gray-600" />
-                <span className="text-sm font-medium">CPF do Titular</span>
-              </div>
-              <input
-                type="text"
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={cpf}
-                onChange={e => setCpf(maskCpf(e.target.value))}
-                required
-                maxLength={14}
-                inputMode="numeric"
-                placeholder="000.000.000-00"
-              />
-            </label>
-          </Card>
-
-          {/* Banco Emissor */}
-          <Card className="p-5 rounded-2xl border-2 border-gray-200">
-            <div className="flex items-center gap-2 mb-4">
-              <Building2 className="w-5 h-5 text-gray-600" />
-              <h3 className="text-lg font-semibold">Banco Emissor</h3>
-            </div>
-            <Select value={selectedBank} onValueChange={setSelectedBank}>
-              <SelectTrigger className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base">
-                <SelectValue placeholder="Selecione o banco emissor" />
-              </SelectTrigger>
-              <SelectContent>
-                {BANKS.map((bank) => (
-                  <SelectItem key={bank.id} value={bank.id}>
-                    <div className="flex items-center gap-2">
-                      <span>{bank.logo}</span>
-                      <span>{bank.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Card>
-
-          {/* Parcelamento */}
-          <Card className="p-5 rounded-2xl border-2 border-gray-200">
-            <div className="flex items-center gap-2 mb-4">
-              <CreditCard className="w-5 h-5 text-gray-600" />
-              <h3 className="text-lg font-semibold">Parcelamento</h3>
-            </div>
-            <Select value={installments} onValueChange={setInstallments}>
-              <SelectTrigger className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base">
-                <SelectValue placeholder="Selecione o número de parcelas" />
-              </SelectTrigger>
-              <SelectContent>
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((num) => (
-                  <SelectItem key={num} value={num.toString()}>
-                    {num === 1 
-                      ? `À vista - R$ ${total.toFixed(2).replace('.', ',')}`
-                      : `${num}x de R$ ${(total / num).toFixed(2).replace('.', ',')} - Total: R$ ${total.toFixed(2).replace('.', ',')}`
-                    }
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Card>
-
-          {/* Botão de Pagamento */}
-          <Button
-            type="submit"
-            className="w-full bg-black text-white rounded-2xl py-5 text-2xl font-semibold mt-4 focus:ring-2 focus:ring-black focus:border-black disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!isFormValid || isProcessing}
-          >
-            {isProcessing ? (
-              <div className="flex items-center gap-2">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                Processando...
-              </div>
-            ) : (
-              `FINALIZAR PAGAMENTO - ${installments}x de R$ ${installmentValue.toFixed(2).replace('.', ',')}`
-            )}
-          </Button>
-        </form>
+            </Card>
+          </div>
+        </div>
       </div>
     </main>
   );

@@ -132,13 +132,13 @@ export const RegistrationForm: React.FC = () => {
 
   return (
     <main className="w-full mt-2 px-[5px]">
-      <div className="text-4xl font-bold mb-[38px]">
+      <div className="text-4xl font-bold mb-[38px] text-center">
         <span className="text-[rgba(12,212,32,1)]">Crie</span> sua conta!
       </div>
       
       {error && <div className="text-red-600 text-center font-semibold mb-2">{error}</div>}
 
-      <p className="text-2xl font-medium mb-[38px]">
+      <p className="text-2xl font-medium mb-[38px] text-center">
         Preencha suas informações, por favor.
       </p>
 
@@ -228,7 +228,7 @@ export const RegistrationForm: React.FC = () => {
           className="font-bold text-xl text-black max-sm:text-base hover:text-[rgba(12,212,32,1)] transition-colors underline"
           onClick={() => navigateAndScroll('/login')}
         >
-          Logue-se
+          Faça login
         </button>
       </div>
     </main>

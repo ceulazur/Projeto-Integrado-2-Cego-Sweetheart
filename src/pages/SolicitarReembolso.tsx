@@ -298,246 +298,266 @@ export default function SolicitarReembolso() {
 
   if (loading) {
     return (
-      <div className="bg-white flex max-w-[480px] w-full flex-col overflow-hidden items-stretch text-2xl font-normal mx-auto pt-4 pb-[122px]">
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
         <Header />
-        <div className="z-10 w-full text-black font-medium -mt-2.5 px-[5px]">
-          <div className="mt-[30px] text-center">
-            <p>Carregando...</p>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-6">
+              <svg className="w-8 h-8 text-red-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </div>
+            <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-4">
+              SOLICITAR REEMBOLSO
+            </h1>
+            <p className="text-xl text-gray-600">Carregando dados do pedido...</p>
           </div>
         </div>
-      </div>
+      </main>
     );
   }
 
   if (error && !order) {
     return (
-      <div className="bg-white flex max-w-[480px] w-full flex-col overflow-hidden items-stretch text-2xl font-normal mx-auto pt-4 pb-[122px]">
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
         <Header />
-        <div className="z-10 w-full text-black font-medium -mt-2.5 px-[5px]">
-          <div className="mt-[30px] text-center">
-            <p className="text-red-600">{error}</p>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-6">
+              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-4">
+              SOLICITAR REEMBOLSO
+            </h1>
+            <p className="text-xl text-red-600 mb-4">{error}</p>
             <button
               onClick={() => navigate('/historico-pedidos')}
-              className="mt-4 bg-blue-600 text-white"
+              className="bg-gradient-to-r from-black to-gray-800 text-white px-8 py-4 rounded-2xl font-semibold hover:from-gray-800 hover:to-black transition-all duration-200"
             >
               Voltar ao Histórico
             </button>
           </div>
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="bg-white flex max-w-[480px] w-full flex-col overflow-hidden items-stretch text-2xl font-normal mx-auto pt-4 pb-[122px]">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
       <Header />
       
-      <div className="z-10 w-full text-black font-medium -mt-2.5 px-[5px]">
-        <div className="mt-[30px]">
+      {/* Container principal responsivo */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Banner */}
+        <div className="mb-8">
           <img
             src="/refund-hero.svg"
             alt="Refund illustration"
-            className="aspect-[2.08] object-contain w-full rounded-[20px] opacity-60"
+            className="w-full max-w-4xl mx-auto rounded-2xl shadow-lg opacity-80"
           />
+        </div>
+
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-4xl lg:text-6xl font-bold mb-8 text-center">
+            <span className="text-red-600">Solicitar</span> Reembolso
+          </h1>
           
-          <main className="w-full mt-2">
-            <div className="text-4xl font-bold mb-[38px]">
-              <span className="text-[rgba(245,0,0,1)]">Solicitar</span> Reembolso
+          {error && <div className="text-red-600 text-center font-semibold mb-6 text-lg">{error}</div>}
+
+          {/* Informações do Pedido */}
+          {order && (
+            <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 border-2 border-gray-200">
+              <h3 className="text-2xl font-bold text-gray-800 mb-4">Pedido #{order.id}</h3>
+              <div className="flex items-center gap-6">
+                <img
+                  src={order.produtoImageUrl || '/placeholder.svg'}
+                  alt={order.produtoNome}
+                  className="w-24 h-24 object-cover rounded-xl shadow-sm"
+                />
+                <div className="flex-1">
+                  <h4 className="text-xl font-semibold text-gray-900 mb-2">{order.produtoNome}</h4>
+                  <div className="grid grid-cols-2 gap-4 text-lg">
+                    <p className="text-gray-600">Quantidade: <span className="font-semibold">{order.quantidade}</span></p>
+                    <p className="text-gray-600">Total: <span className="font-semibold">{order.total}</span></p>
+                    <p className="text-gray-600">Data: <span className="font-semibold">{new Date(order.data_pedido).toLocaleDateString('pt-BR')}</span></p>
+                  </div>
+                </div>
+              </div>
             </div>
-            
-            {error && <div className="text-red-600 text-center font-semibold mb-2">{error}</div>}
+          )}
 
-            {/* Informações do Pedido */}
-            {order && (
-              <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-gray-800 mb-3">Pedido #{order.id}</h3>
-                <div className="flex items-center gap-4">
-                  <img
-                    src={order.produtoImageUrl || '/placeholder.svg'}
-                    alt={order.produtoNome}
-                    className="w-16 h-16 object-cover rounded-lg"
-                  />
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900">{order.produtoNome}</h4>
-                    <p className="text-sm text-gray-600">Quantidade: {order.quantidade}</p>
-                    <p className="text-sm text-gray-600">Total: {order.total}</p>
-                    <p className="text-sm text-gray-600">Data: {new Date(order.data_pedido).toLocaleDateString('pt-BR')}</p>
-                  </div>
-                </div>
+          <p className="text-2xl font-medium mb-8 text-center text-gray-700">
+            Preencha os dados para solicitar o reembolso.
+          </p>
+
+          <form onSubmit={handleSubmit} noValidate className="bg-white rounded-2xl shadow-lg p-8 border-2 border-gray-200">
+            <div className="space-y-8">
+              {/* Motivo do Reembolso */}
+              <div>
+                <label className="block text-xl font-semibold mb-4 text-gray-800">Motivo do Reembolso *</label>
+                <select
+                  value={formData.motivo}
+                  onChange={handleInputChange('motivo')}
+                  className="w-full h-16 text-lg px-6 rounded-xl border-2 border-gray-200 focus:border-red-500 focus:ring-4 focus:ring-red-100 transition-all duration-200 bg-white"
+                >
+                  <option value="">Selecione um motivo</option>
+                  <option value="produto_defeituoso">Produto com defeito</option>
+                  <option value="produto_diferente">Produto diferente do anunciado</option>
+                  <option value="nao_recebido">Produto não recebido</option>
+                  <option value="arrependimento">Arrependimento da compra</option>
+                  <option value="duplicado">Pedido duplicado</option>
+                  <option value="outro">Outro motivo</option>
+                </select>
+                {errors.motivo && <p className="text-red-600 text-sm mt-2">{errors.motivo}</p>}
               </div>
-            )}
 
-            <p className="text-2xl font-medium mb-[38px] text-black">
-              Preencha os dados para solicitar o reembolso.
-            </p>
+              {/* Descrição Detalhada */}
+              <div>
+                <label className="block text-xl font-semibold mb-4 text-gray-800">Descrição Detalhada *</label>
+                <textarea
+                  value={formData.descricao}
+                  onChange={handleInputChange('descricao')}
+                  placeholder="Descreva detalhadamente o motivo do reembolso..."
+                  rows={4}
+                  className="w-full text-lg px-6 py-4 rounded-xl border-2 border-gray-200 focus:border-red-500 focus:ring-4 focus:ring-red-100 transition-all duration-200 resize-none bg-white"
+                />
+                {errors.descricao && <p className="text-red-600 text-sm mt-2">{errors.descricao}</p>}
+              </div>
 
-            <form onSubmit={handleSubmit} noValidate>
-              <div className="space-y-[38px]">
-                {/* Motivo do Reembolso */}
+              {/* Campo de Foto - aparece apenas para motivos específicos */}
+              {precisaFoto && (
                 <div>
-                  <label className="block text-lg font-medium mb-2">Motivo do Reembolso *</label>
-                  <select
-                    value={formData.motivo}
-                    onChange={handleInputChange('motivo')}
-                    className="w-full bg-[rgba(255,255,255,0.40)] min-h-[79px] px-12 py-[27px] text-2xl border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  >
-                    <option value="">Selecione um motivo</option>
-                    <option value="produto_defeituoso">Produto com defeito</option>
-                    <option value="produto_diferente">Produto diferente do anunciado</option>
-                    <option value="nao_recebido">Produto não recebido</option>
-                    <option value="arrependimento">Arrependimento da compra</option>
-                    <option value="duplicado">Pedido duplicado</option>
-                    <option value="outro">Outro motivo</option>
-                  </select>
-                  {errors.motivo && <p className="text-red-600 text-sm mt-1">{errors.motivo}</p>}
-                </div>
-
-                {/* Descrição Detalhada */}
-                <div>
-                  <label className="block text-lg font-medium mb-2">Descrição Detalhada *</label>
-                  <textarea
-                    value={formData.descricao}
-                    onChange={handleInputChange('descricao')}
-                    placeholder="Descreva detalhadamente o motivo do reembolso..."
-                    rows={4}
-                    className="w-full bg-[rgba(255,255,255,0.40)] px-12 py-[27px] text-2xl border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
-                  />
-                  {errors.descricao && <p className="text-red-600 text-sm mt-1">{errors.descricao}</p>}
-                </div>
-
-                {/* Campo de Foto - aparece apenas para motivos específicos */}
-                {precisaFoto && (
-                  <div>
-                    <label className="block text-lg font-medium mb-2">
-                      Foto do Produto * 
-                      <span className="text-sm text-gray-500 ml-2">(Máximo 5MB)</span>
-                    </label>
-                    
-                    {!previewUrl ? (
-                      <div className="border-2 border-dashed border-red-300 rounded-lg p-6 text-center hover:border-red-400 transition-colors">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleFileChange}
-                          className="hidden"
-                          id="foto-upload"
-                        />
-                        <label
-                          htmlFor="foto-upload"
-                          className="cursor-pointer flex flex-col items-center"
-                        >
-                          <svg className="w-12 h-12 text-red-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                          </svg>
-                          <span className="text-lg text-gray-600">Clique para selecionar uma foto</span>
-                          <span className="text-sm text-gray-500 mt-1">ou arraste e solte aqui</span>
-                        </label>
-                      </div>
-                    ) : (
-                      <div className="relative">
-                        <img
-                          src={previewUrl}
-                          alt="Preview da foto"
-                          className="w-full max-w-md mx-auto rounded-lg shadow-md"
-                        />
-                        <button
-                          type="button"
-                          onClick={removeFoto}
-                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-colors"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
-                    )}
-                    
-                    {errors.foto && <p className="text-red-600 text-sm mt-1">{errors.foto}</p>}
-                    
-                    <p className="text-sm text-gray-600 mt-2">
-                      📸 Tire uma foto clara do produto para ajudar na análise do reembolso
-                    </p>
-                  </div>
-                )}
-
-                {/* Dados Bancários */}
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">Dados Bancários para Reembolso</h3>
+                  <label className="block text-xl font-semibold mb-4 text-gray-800">
+                    Foto do Produto * 
+                    <span className="text-sm text-gray-500 ml-2">(Máximo 5MB)</span>
+                  </label>
                   
+                  {!previewUrl ? (
+                    <div className="border-2 border-dashed border-red-300 rounded-xl p-8 text-center hover:border-red-400 transition-colors bg-gray-50">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                        id="foto-upload"
+                      />
+                      <label
+                        htmlFor="foto-upload"
+                        className="cursor-pointer flex flex-col items-center"
+                      >
+                        <svg className="w-16 h-16 text-red-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <span className="text-xl text-gray-600 mb-2">Clique para selecionar uma foto</span>
+                        <span className="text-lg text-gray-500">ou arraste e solte aqui</span>
+                      </label>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <img
+                        src={previewUrl}
+                        alt="Preview da foto"
+                        className="w-full max-w-md mx-auto rounded-xl shadow-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={removeFoto}
+                        className="absolute top-4 right-4 bg-red-500 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                  
+                  {errors.foto && <p className="text-red-600 text-sm mt-2">{errors.foto}</p>}
+                  
+                  <p className="text-lg text-gray-600 mt-4 text-center">
+                    📸 Tire uma foto clara do produto para ajudar na análise do reembolso
+                  </p>
+                </div>
+              )}
+
+              {/* Dados Bancários */}
+              <div className="space-y-6">
+                <h3 className="text-2xl font-bold text-gray-800 mb-6">Dados Bancários para Reembolso</h3>
+                
+                <Input
+                  id="banco"
+                  placeholder="Nome do Banco"
+                  type="text"
+                  value={formData.banco}
+                  onChange={handleInputChange('banco')}
+                  error={errors.banco}
+                  required
+                  className="h-16 text-lg px-6 rounded-xl border-2 border-gray-200 focus:border-red-500 focus:ring-4 focus:ring-red-100 transition-all duration-200 bg-white"
+                />
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <Input
-                    id="banco"
-                    placeholder="Nome do Banco"
+                    id="agencia"
+                    placeholder="Agência"
                     type="text"
-                    value={formData.banco}
-                    onChange={handleInputChange('banco')}
-                    error={errors.banco}
+                    value={formData.agencia}
+                    onChange={handleInputChange('agencia')}
+                    error={errors.agencia}
                     required
-                    className="bg-[rgba(255,255,255,0.40)] min-h-[79px] px-12 py-[27px] text-2xl placeholder:text-black placeholder:opacity-70 border-red-500 focus:border-red-500 focus:ring-red-500"
+                    className="h-16 text-lg px-6 rounded-xl border-2 border-gray-200 focus:border-red-500 focus:ring-4 focus:ring-red-100 transition-all duration-200 bg-white"
                   />
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input
-                      id="agencia"
-                      placeholder="Agência"
-                      type="text"
-                      value={formData.agencia}
-                      onChange={handleInputChange('agencia')}
-                      error={errors.agencia}
-                      required
-                      className="bg-[rgba(255,255,255,0.40)] min-h-[79px] px-12 py-[27px] text-2xl placeholder:text-black placeholder:opacity-70 border-red-500 focus:border-red-500 focus:ring-red-500"
-                    />
-
-                    <Input
-                      id="conta"
-                      placeholder="Conta"
-                      type="text"
-                      value={formData.conta}
-                      onChange={handleInputChange('conta')}
-                      error={errors.conta}
-                      required
-                      className="bg-[rgba(255,255,255,0.40)] min-h-[79px] px-12 py-[27px] text-2xl placeholder:text-black placeholder:opacity-70 border-red-500 focus:border-red-500 focus:ring-red-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-lg font-medium mb-2">Tipo de Conta *</label>
-                    <select
-                      value={formData.tipoConta}
-                      onChange={handleInputChange('tipoConta')}
-                      className="w-full bg-[rgba(255,255,255,0.40)] min-h-[79px] px-12 py-[27px] text-2xl border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                    >
-                      <option value="">Selecione o tipo de conta</option>
-                      <option value="corrente">Conta Corrente</option>
-                      <option value="poupanca">Conta Poupança</option>
-                      <option value="pagamento">Conta de Pagamento</option>
-                    </select>
-                    {errors.tipoConta && <p className="text-red-600 text-sm mt-1">{errors.tipoConta}</p>}
-                  </div>
+                  <Input
+                    id="conta"
+                    placeholder="Conta"
+                    type="text"
+                    value={formData.conta}
+                    onChange={handleInputChange('conta')}
+                    error={errors.conta}
+                    required
+                    className="h-16 text-lg px-6 rounded-xl border-2 border-gray-200 focus:border-red-500 focus:ring-4 focus:ring-red-100 transition-all duration-200 bg-white"
+                  />
                 </div>
 
-                {/* Botões */}
-                <div className="flex gap-4 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => navigate('/historico-pedidos')}
-                    className="flex-1 bg-gray-200 text-gray-800 hover:bg-gray-300 min-h-[81px] w-full gap-2.5 px-12 py-[26px] text-2xl font-normal rounded-[20px] border border-gray-300 transition-colors"
+                <div>
+                  <label className="block text-xl font-semibold mb-4 text-gray-800">Tipo de Conta *</label>
+                  <select
+                    value={formData.tipoConta}
+                    onChange={handleInputChange('tipoConta')}
+                    className="w-full h-16 text-lg px-6 rounded-xl border-2 border-gray-200 focus:border-red-500 focus:ring-4 focus:ring-red-100 transition-all duration-200 bg-white"
                   >
-                    Cancelar
-                  </button>
-                  
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex-1 bg-[rgba(245,0,0,1)] text-white hover:bg-red-700 min-h-[81px] w-full gap-2.5 px-12 py-[26px] text-2xl font-normal disabled:opacity-50 rounded-[20px] border border-red-600 transition-colors"
-                  >
-                    {isSubmitting ? 'Enviando...' : 'Solicitar Reembolso'}
-                  </button>
+                    <option value="">Selecione o tipo de conta</option>
+                    <option value="corrente">Conta Corrente</option>
+                    <option value="poupanca">Conta Poupança</option>
+                    <option value="pagamento">Conta de Pagamento</option>
+                  </select>
+                  {errors.tipoConta && <p className="text-red-600 text-sm mt-2">{errors.tipoConta}</p>}
                 </div>
               </div>
-            </form>
-          </main>
+
+              {/* Botões */}
+              <div className="flex gap-6 pt-8">
+                <button
+                  type="button"
+                  onClick={() => navigate('/historico-pedidos')}
+                  className="flex-1 bg-gray-200 text-gray-800 hover:bg-gray-300 h-16 text-xl font-semibold rounded-2xl border-2 border-gray-300 transition-all duration-200 hover:shadow-lg"
+                >
+                  Cancelar
+                </button>
+                
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 h-16 text-xl font-semibold disabled:opacity-50 rounded-2xl border-2 border-red-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none"
+                >
+                  {isSubmitting ? 'Enviando...' : 'Solicitar Reembolso'}
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
       </div>
-    </div>
+    </main>
   );
 } 

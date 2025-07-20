@@ -25,16 +25,20 @@ interface FreteOption {
 export const VerProduto: React.FC = () => {
   const [selectedSize, setSelectedSize] = useState('P');
   const [selectedFrete, setSelectedFrete] = useState<FreteOption | null>(null);
+  const [quantity, setQuantity] = useState(1);
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { usuario } = useContext(UserContext);
   const { user } = useAuth();
 
-  // Busca os dados do produto pelo ID da URL
   const { data: productData, isLoading, error } = useProduct(id || '');
 
   const handleSizeChange = (size: string) => {
     setSelectedSize(size);
+  };
+
+  const handleQuantityChange = (newQuantity: number) => {
+    setQuantity(Math.max(1, Math.min(newQuantity, productData?.quantity || 1)));
   };
 
   const handleAddToCart = () => {
@@ -43,7 +47,7 @@ export const VerProduto: React.FC = () => {
       return;
     }
     if (!productData) return;
-    // Busca o carrinho atual
+    
     const stored = localStorage.getItem(getCartKey(user?.id));
     type CartItem = {
       id: string;
@@ -52,6 +56,7 @@ export const VerProduto: React.FC = () => {
       imageUrl: string;
       quantity: number;
       category: string;
+      size?: string;
     };
     let cart: CartItem[] = [];
     if (stored) {
@@ -59,20 +64,20 @@ export const VerProduto: React.FC = () => {
         cart = JSON.parse(stored);
       } catch { cart = []; }
     }
-    // Verifica se o produto já está no carrinho
+    
     const idx = cart.findIndex((item) => item.id === productData.id);
     if (idx >= 0) {
-      cart[idx].quantity += 1;
+      cart[idx].quantity += quantity;
     } else {
       const item: CartItem = {
         id: productData.id,
         title: productData.title,
         price: productData.price,
         imageUrl: productData.imageUrl,
-        quantity: 1,
-        category: productData.category || "Outro"
+        quantity,
+        category: productData.category || "Outro",
+        size: selectedSize
       };
-      console.log('Adicionando ao carrinho:', item);
       cart.push(item);
     }
     localStorage.setItem(getCartKey(user?.id), JSON.stringify(cart));
@@ -89,131 +94,240 @@ export const VerProduto: React.FC = () => {
 
   if (isLoading) {
     return (
-      <main className="flex overflow-hidden flex-col py-5 pr-1.5 mx-auto w-full bg-white max-w-[480px]">
+      <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="flex flex-col items-center mt-4 w-full">
-          <p>Carregando produto...</p>
+        <div className="max-w-7xl mx-auto px-8 py-8">
+          <div className="bg-white rounded-xl p-8">
+            <div className="animate-pulse">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="bg-gray-200 h-96 rounded-lg"></div>
+                <div className="space-y-4">
+                  <div className="bg-gray-200 h-8 rounded w-3/4"></div>
+                  <div className="bg-gray-200 h-6 rounded w-1/2"></div>
+                  <div className="bg-gray-200 h-4 rounded w-full"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
+      </div>
     );
   }
 
   if (error || !productData) {
     return (
-      <main className="flex overflow-hidden flex-col py-5 pr-1.5 mx-auto w-full bg-white max-w-[480px]">
+      <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="flex flex-col items-center mt-4 w-full">
-          <p className="text-red-600">Produto não encontrado ou erro ao carregar.</p>
+        <div className="max-w-7xl mx-auto px-8 py-8">
+          <div className="bg-white rounded-xl p-8 text-center">
+            <div className="text-red-500 text-lg mb-4">
+              Produto não encontrado ou erro ao carregar.
+            </div>
+            <button
+              onClick={handleGoBack}
+              className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Voltar ao Catálogo
+            </button>
+          </div>
         </div>
-      </main>
+      </div>
     );
   }
 
+  const totalPrice = parseFloat(productData.price.replace('R$ ', '').replace(',', '.')) * quantity;
+  const fretePrice = selectedFrete ? selectedFrete.preco : 0;
+  const finalTotal = totalPrice + fretePrice;
+
   return (
-    <main className="flex overflow-hidden flex-col py-5 pr-1.5 mx-auto w-full bg-white max-w-[480px]">
+    <div className="min-h-screen bg-gray-50">
       <Header />
 
-      <div className="flex flex-col items-center mt-4 w-full">
-        {/* Botão Voltar */}
-        <button
-          onClick={handleGoBack}
-          className="self-start mb-4 px-4 py-2 text-sm font-medium text-blue-900 hover:text-blue-700 transition-colors"
-        >
-          ← Voltar ao Catálogo
-        </button>
-
-        <ProductImage
-          src={productData.imageUrl}
-          alt={`${productData.title} - Arte do artista ${productData.artistUsername}`}
-        />
-
-        <ProductInfo 
-          name={productData.title}
-          price={productData.price}
-        />
-
-        <ArtistInfo
-          username={productData.artistUsername}
-          profileImage={productData.artistProfileImage}
-        />
-
-        <div className="shrink-0 self-stretch mt-2.5 h-px border border-black border-solid" />
-        
-        <ProductSpecs 
-          dimensions={productData.dimensions}
-          framed={productData.framed}
-        />
-
-        <ProductDescription
-          description={productData.description}
-        />
-        
-        <ProductQuantity
-          quantity={productData.quantity}
-        />
-        
-        <section className="mt-2 w-64 max-w-full text-sm text-gray-700">
-          <div>Categoria: <span className="font-bold text-black">{productData.category}</span></div>
-        </section>
-        
-        {(productData.category === 'Camisa' || productData.category === 'Calça') && (
-          <SizeSelector
-            sizes={productData.availableSizes}
-            defaultSize="P"
-            onSizeChange={handleSizeChange}
-          />
-        )}
-
-        {/* Calculadora de Frete */}
-        <div className="w-full mt-4">
-          <FreteCalculator
-            onFreteSelect={handleFreteSelect}
-            selectedFrete={selectedFrete}
-            cepOrigem="01001-000"
-          />
-        </div>
-
-        {/* Resumo do Pedido com Frete */}
-        {selectedFrete && (
-          <div className="w-full mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
-            <h3 className="text-lg font-semibold text-blue-900 mb-3">
-              Resumo do Pedido
-            </h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>Produto:</span>
-                <span className="font-medium">{productData.title}</span>
+      <div className="max-w-7xl mx-auto px-8 py-8">
+        {/* Breadcrumb */}
+        <nav className="flex mb-8" aria-label="Breadcrumb">
+          <ol className="flex items-center space-x-4">
+            <li>
+              <a href="/" className="text-gray-500 hover:text-gray-700">
+                Início
+              </a>
+            </li>
+            <li>
+              <div className="flex items-center">
+                <svg className="flex-shrink-0 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                </svg>
+                <a href="/catalogo" className="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+                  Catálogo
+                </a>
               </div>
-              <div className="flex justify-between">
-                <span>Preço:</span>
-                <span className="font-medium">{productData.price}</span>
+            </li>
+            <li>
+              <div className="flex items-center">
+                <svg className="flex-shrink-0 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                </svg>
+                <span className="ml-4 text-sm font-medium text-gray-500">{productData.title}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Frete ({selectedFrete.nome}):</span>
-                <span className="font-medium">
-                  R$ {selectedFrete.preco.toFixed(2).replace('.', ',')}
-                </span>
+            </li>
+          </ol>
+        </nav>
+
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            {/* Coluna da Esquerda - Imagem */}
+            <div className="p-8">
+              <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+                <img
+                  src={productData.imageUrl}
+                  alt={`${productData.title} - Arte do artista ${productData.artistUsername}`}
+                  className="w-full h-full object-cover"
+                />
               </div>
-              <div className="border-t pt-2 mt-2">
-                <div className="flex justify-between font-semibold">
-                  <span>Total:</span>
-                  <span className="text-blue-600">
-                    R$ {(parseFloat(productData.price.replace('R$ ', '').replace(',', '.')) + selectedFrete.preco).toFixed(2).replace('.', ',')}
-                  </span>
+            </div>
+
+            {/* Coluna da Direita - Informações */}
+            <div className="p-8 bg-gray-50">
+              <div className="space-y-6">
+                {/* Título e Preço */}
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    {productData.title}
+                  </h1>
+                  <p className="text-2xl font-bold text-red-600">
+                    {productData.price}
+                  </p>
                 </div>
+
+                {/* Informações do Artista */}
+                <div className="flex items-center space-x-4 p-4 bg-white rounded-lg">
+                  <img
+                    src={productData.artistProfileImage}
+                    alt={productData.artistUsername}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                  <div>
+                    <p className="font-semibold text-gray-900">{productData.artistUsername}</p>
+                    <p className="text-sm text-gray-600">Artista</p>
+                  </div>
+                </div>
+
+                {/* Especificações */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-white rounded-lg">
+                    <p className="text-sm text-gray-600">Dimensões</p>
+                    <p className="font-semibold">{productData.dimensions}</p>
+                  </div>
+                  <div className="p-4 bg-white rounded-lg">
+                    <p className="text-sm text-gray-600">Emoldurado</p>
+                    <p className="font-semibold">{productData.framed ? 'Sim' : 'Não'}</p>
+                  </div>
+                </div>
+
+                {/* Descrição */}
+                <div className="p-4 bg-white rounded-lg">
+                  <h3 className="font-semibold text-gray-900 mb-2">Descrição</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    {productData.description}
+                  </p>
+                </div>
+
+                {/* Quantidade */}
+                <div className="p-4 bg-white rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-gray-900">Quantidade</span>
+                    <div className="flex items-center space-x-3">
+                      <button
+                        onClick={() => handleQuantityChange(quantity - 1)}
+                        className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center"
+                      >
+                        -
+                      </button>
+                      <span className="w-12 text-center font-semibold">{quantity}</span>
+                      <button
+                        onClick={() => handleQuantityChange(quantity + 1)}
+                        className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">
+                    {productData.quantity} unidades disponíveis
+                  </p>
+                </div>
+
+                {/* Seletor de Tamanho (se aplicável) */}
+                {(productData.category === 'Camisa' || productData.category === 'Calça') && (
+                  <div className="p-4 bg-white rounded-lg">
+                    <SizeSelector
+                      sizes={productData.availableSizes}
+                      defaultSize="P"
+                      onSizeChange={handleSizeChange}
+                    />
+                  </div>
+                )}
+
+                {/* Calculadora de Frete */}
+                <div className="p-4 bg-white rounded-lg">
+                  <FreteCalculator
+                    onFreteSelect={handleFreteSelect}
+                    selectedFrete={selectedFrete}
+                    cepOrigem="01001-000"
+                  />
+                </div>
+
+                {/* Resumo do Pedido */}
+                {selectedFrete && (
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h3 className="text-lg font-semibold text-blue-900 mb-3">
+                      Resumo do Pedido
+                    </h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Produto ({quantity}x):</span>
+                        <span className="font-medium">{productData.title}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Subtotal:</span>
+                        <span className="font-medium">R$ {totalPrice.toFixed(2).replace('.', ',')}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Frete ({selectedFrete.nome}):</span>
+                        <span className="font-medium">
+                          R$ {selectedFrete.preco.toFixed(2).replace('.', ',')}
+                        </span>
+                      </div>
+                      <div className="border-t pt-2 mt-2">
+                        <div className="flex justify-between font-semibold text-lg">
+                          <span>Total:</span>
+                          <span className="text-blue-600">
+                            R$ {finalTotal.toFixed(2).replace('.', ',')}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Botão de Comprar */}
+                <button
+                  onClick={handleAddToCart}
+                  disabled={productData.quantity <= 0}
+                  className={`w-full py-4 px-6 rounded-lg font-semibold text-lg transition-colors ${
+                    productData.quantity > 0
+                      ? 'bg-red-600 text-white hover:bg-red-700'
+                      : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                  }`}
+                >
+                  {productData.quantity > 0 ? 'Adicionar ao Carrinho' : 'Produto Indisponível'}
+                </button>
               </div>
             </div>
           </div>
-        )}
-
-        <div className="flex justify-center w-full mt-4">
-          <AddToCartButton 
-            onAddToCart={handleAddToCart}
-            disabled={productData.quantity === 0}
-          />
         </div>
       </div>
-    </main>
+    </div>
   );
 };
 

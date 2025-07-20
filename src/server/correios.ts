@@ -61,7 +61,6 @@ export class CorreiosService {
       
       return response.data;
     } catch (error) {
-      console.error('Erro ao buscar CEP:', error);
       return null;
     }
   }
@@ -78,11 +77,6 @@ export class CorreiosService {
     largura: number = 20
   ): Promise<FreteResponse> {
     try {
-      console.log('🚀 Iniciando cálculo de frete...');
-      console.log('   CEP Origem:', cepOrigem);
-      console.log('   CEP Destino:', cepDestino);
-      console.log('   Peso:', peso, 'g');
-      
       // Limpar CEPs
       const cepOrigemClean = cepOrigem.replace(/\D/g, '');
       const cepDestinoClean = cepDestino.replace(/\D/g, '');
@@ -95,12 +89,7 @@ export class CorreiosService {
         throw new Error('CEP de origem ou destino inválido');
       }
 
-      console.log('✅ CEPs validados com sucesso');
-      console.log('   Origem:', origem.localidade, '-', origem.uf);
-      console.log('   Destino:', destino.localidade, '-', destino.uf);
-
       // Calcular frete usando Frete Click
-      console.log('📡 Chamando API Frete Click...');
       const freteResponse = await this.calcularFreteClick(
         cepOrigemClean,
         cepDestinoClean,
@@ -111,9 +100,6 @@ export class CorreiosService {
       );
 
       if (freteResponse.success && freteResponse.data?.services) {
-        console.log('✅ API Frete Click funcionou!');
-        console.log('   Serviços encontrados:', freteResponse.data.services.length);
-        
         // Mapear serviços do Frete Click para nosso formato
         const servicos = freteResponse.data.services.map(service => ({
           codigo: service.id.toString(),
@@ -122,11 +108,6 @@ export class CorreiosService {
           prazo: service.delivery_time
         }));
 
-        console.log('📊 Serviços mapeados:');
-        servicos.forEach(servico => {
-          console.log(`   ${servico.nome}: R$ ${servico.preco} - ${servico.prazo} dias`);
-        });
-
         return {
           cepOrigem: cepOrigemClean,
           cepDestino: cepDestinoClean,
@@ -134,28 +115,22 @@ export class CorreiosService {
         };
       } else {
         // Fallback para cálculo simulado se a API falhar
-        console.warn('⚠️ API de frete falhou, usando cálculo simulado');
-        console.log('   Erro da API:', freteResponse.error);
         return this.calcularFreteSimulado(origem, destino, peso);
       }
     } catch (error) {
-      console.error('❌ Erro ao calcular frete:', error);
       
       // Fallback para cálculo simulado
       try {
-        console.log('🔄 Tentando fallback...');
         const origem = await this.buscarCep(cepOrigem.replace(/\D/g, ''));
         const destino = await this.buscarCep(cepDestino.replace(/\D/g, ''));
         
         if (origem && destino) {
-          console.log('✅ Fallback executado com sucesso');
           return this.calcularFreteSimulado(origem, destino, peso);
         }
       } catch (fallbackError) {
-        console.error('❌ Erro no fallback:', fallbackError);
+        throw new Error('Não foi possível calcular o frete');
       }
       
-      throw new Error('Não foi possível calcular o frete');
     }
   }
 
@@ -188,7 +163,6 @@ export class CorreiosService {
 
       return response.data;
     } catch (error) {
-      console.error('Erro na API Frete Click:', error);
       return {
         success: false,
         error: 'Erro na API de frete'
@@ -204,21 +178,14 @@ export class CorreiosService {
     destino: CepResponse,
     peso: number
   ): FreteResponse {
-    console.log('🎲 Usando cálculo simulado (fallback)');
     
     const distancia = this.calcularDistanciaSimulada(origem, destino);
     const pesoKg = peso / 1000;
-    
-    console.log('   Distância calculada:', distancia, 'km');
-    console.log('   Peso:', pesoKg, 'kg');
     
     const precoPAC = this.calcularPrecoPAC(distancia, pesoKg);
     const precoSEDEX = this.calcularPrecoSEDEX(distancia, pesoKg);
     const prazoPAC = this.calcularPrazoPAC(distancia);
     const prazoSEDEX = this.calcularPrazoSEDEX(distancia);
-    
-    console.log('   PAC: R$', precoPAC, '-', prazoPAC, 'dias');
-    console.log('   SEDEX: R$', precoSEDEX, '-', prazoSEDEX, 'dias');
     
     const servicos = [
       {

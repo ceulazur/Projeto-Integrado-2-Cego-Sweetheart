@@ -6,13 +6,13 @@ import { useVendors } from "../../hooks/useVendors";
 import { FunnelIcon } from "@heroicons/react/24/solid";
 
 const CatalogSkeleton = () => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3.5">
-    {Array.from({ length: 4 }).map((_, index) => (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    {Array.from({ length: 8 }).map((_, index) => (
       <div key={index} className="flex flex-col space-y-3">
-        <Skeleton className="h-[175px] w-[190px] rounded-xl" />
+        <Skeleton className="h-64 w-full rounded-xl" />
         <div className="space-y-2">
-          <Skeleton className="h-4 w-[150px]" />
-          <Skeleton className="h-4 w-[100px]" />
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
         </div>
       </div>
     ))}
@@ -73,43 +73,43 @@ export const CatalogSection: React.FC = () => {
     );
   }, [products, selectedArtist]);
 
-  // Função para ajustar o tamanho da fonte do nome do artista
-  function getArtistFontSize(username: string) {
-    if (!username) return "text-base";
-    if (username.length > 22) return "text-xs";
-    if (username.length > 16) return "text-sm";
-    return "text-base";
-  }
-
   return (
-    <section className="mt-6 w-full">
-      {/* Linha com título à esquerda e botão de filtro à direita */}
-      <div className="flex flex-row items-center justify-between w-full relative">
-        <h2 className="text-4xl font-extrabold text-red-600">
-          CATÁLOGO
-        </h2>
-        <div className="relative mr-7" ref={filterRef}>
+    <section className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div>
+          <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-2">
+            Catálogo de Arte
+          </h1>
+          <p className="text-lg text-gray-600">
+            Descubra peças únicas dos melhores artistas independentes
+          </p>
+        </div>
+        
+        {/* Filtro de Artista */}
+        <div className="relative" ref={filterRef}>
           <button
             onClick={() => setIsFilterOpen((v) => !v)}
-            className="flex items-center gap-1 border border-red-600 rounded px-3 py-1 hover:bg-red-50 bg-white min-w-[140px]"
-            aria-label="Abrir filtros"
+            className="flex items-center gap-3 border-2 border-gray-300 rounded-lg px-4 py-3 hover:border-red-500 bg-white min-w-[200px] transition-colors"
+            aria-label="Filtrar por artista"
             type="button"
-            style={{ maxWidth: 220 }}
           >
-            <FunnelIcon className="w-5 h-5 text-red-600 flex-shrink-0" />
-            <span className={`text-red-600 truncate ${getArtistFontSize(selectedArtist ? artistOptions.find(opt => opt.handle === selectedArtist)?.username || '' : '')}`}
-              style={{ maxWidth: 140, display: 'inline-block' }}
-            >
-              {selectedArtist ? artistOptions.find(opt => opt.handle === selectedArtist)?.username : "Artista"}
+            <FunnelIcon className="w-5 h-5 text-gray-600 flex-shrink-0" />
+            <span className="text-gray-700 font-medium truncate">
+              {selectedArtist ? artistOptions.find(opt => opt.handle === selectedArtist)?.username : "Todos os artistas"}
             </span>
+            <svg className="w-4 h-4 text-gray-600 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
           </button>
-          {/* Dropdown abaixo do botão, ocupando toda a largura do botão */}
+          
+          {/* Dropdown */}
           {isFilterOpen && (
-            <div className="absolute left-0 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-50 min-w-[140px] max-w-[220px]">
-              <ul className="py-1">
+            <div className="absolute right-0 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-xl z-50 min-w-[200px]">
+              <ul className="py-2">
                 <li>
                   <button
-                    className={`w-full text-left px-4 py-2 hover:bg-gray-100 ${selectedArtist === "" ? "font-bold" : ""}`}
+                    className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${selectedArtist === "" ? "bg-red-50 text-red-600 font-semibold" : "text-gray-700"}`}
                     onClick={() => { setSelectedArtist(""); setIsFilterOpen(false); }}
                   >
                     Todos os artistas
@@ -118,7 +118,7 @@ export const CatalogSection: React.FC = () => {
                 {artistOptions.map(opt => (
                   <li key={opt.handle}>
                     <button
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 ${selectedArtist === opt.handle ? "font-bold" : ""}`}
+                      className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${selectedArtist === opt.handle ? "bg-red-50 text-red-600 font-semibold" : "text-gray-700"}`}
                       onClick={() => { setSelectedArtist(opt.handle); setIsFilterOpen(false); }}
                     >
                       {opt.username || opt.handle}
@@ -130,23 +130,36 @@ export const CatalogSection: React.FC = () => {
           )}
         </div>
       </div>
-      <div className="flex flex-col items-start text-center text-red-600">
-        <p className="mt-2.5 text-base">
-          Aqui ficam os produtos dos seus artistas preferidos
+
+      {/* Contador de resultados */}
+      <div className="flex items-center justify-between">
+        <p className="text-gray-600">
+          {filteredProducts.length} {filteredProducts.length === 1 ? 'produto encontrado' : 'produtos encontrados'}
+          {selectedArtist && ` para ${artistOptions.find(opt => opt.handle === selectedArtist)?.username}`}
         </p>
-        <div className="self-stretch mt-2.5 w-full max-w-[449px] mr-auto border border-black border-solid min-h-px" />
       </div>
 
+      {/* Loading State */}
       {isLoading && <CatalogSkeleton />}
 
+      {/* Error State */}
       {error && (
-         <p className="mt-4 text-center text-red-500">
-           Erro ao carregar produtos. Tente novamente mais tarde.
-         </p>
+        <div className="text-center py-12">
+          <div className="text-red-500 text-lg mb-4">
+            Erro ao carregar produtos. Tente novamente mais tarde.
+          </div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Tentar Novamente
+          </button>
+        </div>
       )}
 
-      {!isLoading && !error && filteredProducts && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3.5">
+      {/* Products Grid */}
+      {!isLoading && !error && filteredProducts && filteredProducts.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((product, index) => (
             <ProductCard
               key={product.id}
@@ -156,17 +169,35 @@ export const CatalogSection: React.FC = () => {
               imageUrl={product.imageUrl}
               productId={product.id}
               quantity={product.quantity}
-              shadowClass={index % 2 === 1 ? "shadow-[4px_4px_4px_rgba(0,0,0,1)]" : "shadow-[4px_4px_10px_rgba(0,0,0,1)]"}
-              className="my-auto"
+              shadowClass="shadow-lg hover:shadow-xl transition-shadow"
+              className="bg-white rounded-xl overflow-hidden hover:scale-105 transition-transform duration-300"
             />
           ))}
         </div>
       )}
 
+      {/* Empty State */}
       {!isLoading && !error && (!filteredProducts || filteredProducts.length === 0) && (
-        <p className="mt-4 text-center text-gray-500">
-          Nenhum produto disponível no momento.
-        </p>
+        <div className="text-center py-16">
+          <div className="text-gray-400 text-6xl mb-4">🎨</div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            Nenhum produto encontrado
+          </h3>
+          <p className="text-gray-600 mb-6">
+            {selectedArtist 
+              ? `Não há produtos disponíveis para ${artistOptions.find(opt => opt.handle === selectedArtist)?.username} no momento.`
+              : 'Não há produtos disponíveis no momento.'
+            }
+          </p>
+          {selectedArtist && (
+            <button
+              onClick={() => setSelectedArtist("")}
+              className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Ver todos os produtos
+            </button>
+          )}
+        </div>
       )}
     </section>
   );

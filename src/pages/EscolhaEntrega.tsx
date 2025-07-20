@@ -128,123 +128,147 @@ const EscolhaEntrega: React.FC = () => {
   }
 
   return (
-    <main className="relative mx-auto my-0 w-full min-h-screen bg-white max-w-[480px] flex flex-col items-stretch text-2xl font-normal pt-4 pb-[122px]">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
       <Header />
-      <div className="z-10 w-full text-black font-medium -mt-2.5 px-[5px]">
-        <div className="mt-[30px]">
+      
+      {/* Container principal responsivo */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Banner */}
+        <div className="mb-8">
           <img
             src="/checkout-banner.svg"
             alt="Banner checkout"
-            className="aspect-[2.08] object-contain w-full rounded-[20px]"
+            className="w-full max-w-4xl mx-auto rounded-2xl shadow-lg"
           />
         </div>
-      </div>
-      <nav className="mb-5 text-sm font-light text-black max-sm:text-xs px-4 mt-[17px]">
-        <span className="font-bold text-black">Entrega</span> <span className="font-normal text-zinc-500">&gt; Pagamento</span>
-      </nav>
-      <section className="px-4 mb-10">
-        <Card className="p-5 mb-10 rounded-3xl border border-black border-solid bg-white bg-opacity-90">
-          {cart.length > 0 && (
-            <div className="flex flex-col gap-4 pb-5 mb-5 border-b border-solid border-b-black border-b-opacity-20">
-              {cart.map((item) => (
-                <div key={item.id} className="flex gap-4 items-center">
-                  <img src={item.imageUrl} alt={item.title} className="shrink-0 rounded-lg h-[75px] w-[59px] object-cover bg-gray-200" />
-                  <div>
-                    <h3 className="mb-1.5 text-base">{item.title}</h3>
-                    <p className="text-base text-stone-500">x {item.quantity}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          <div className="flex justify-between mb-2.5">
-            <span>Subtotal</span>
-            <span>R$ {subtotal.toFixed(2).replace('.', ',')}</span>
-          </div>
-          <div className="flex justify-between mb-5">
-            <span>Custo de frete</span>
-            <span>R$ {frete.toFixed(2).replace('.', ',')}</span>
-          </div>
-          <div className="flex justify-between pt-2.5 text-lg font-semibold border-t border-solid border-t-black border-t-opacity-20">
-            <span>Total</span>
-            <span>R$ {total.toFixed(2).replace('.', ',')}</span>
-          </div>
-        </Card>
-      </section>
-      <section className="px-4">
-        <h2 className="text-4xl font-bold mb-6 text-black">Entrega por</h2>
-        
-        {loading && (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
-            <span className="ml-3 text-lg">Calculando frete...</span>
-          </div>
-        )}
-        
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-800 text-sm">{error}</p>
-            <button
-              onClick={() => enderecoData && calcularFrete(enderecoData.cep)}
-              className="mt-2 text-red-600 underline text-sm"
-            >
-              Tentar novamente
-            </button>
-          </div>
-        )}
-        
-        {!loading && !error && freteOptions.length > 0 && (
-        <form className="bg-[rgba(70,70,70,0)] border overflow-hidden pb-[13px] px-[5px] rounded-[20px] border-[rgba(96,96,96,1)] border-solid mb-8">
-          <fieldset>
-            <legend className="sr-only">Opções de entrega</legend>
-              {freteOptions.map((option, index) => (
-              <div
-                  key={option.codigo}
-                  className={`flex min-h-[57px] w-full items-center gap-[40px_50px] justify-between ${index > 0 ? 'mt-[11px]' : ''}`}
-              >
-                  <div className="self-stretch flex items-stretch gap-2.5 my-auto w-56 pr-3 pb-1.5">
-                  <label className="flex items-center gap-2.5 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="delivery"
-                        value={option.codigo}
-                        checked={selected === option.codigo}
-                        onChange={() => setSelected(option.codigo)}
-                      className="sr-only"
-                    />
-                    <div
-                        className={`flex w-5 shrink-0 h-5 my-auto rounded-full border-black border-solid ${selected === option.codigo ? 'bg-black border' : 'bg-white border'}`}
-                      aria-hidden="true"
-                    />
-                    <div className="flex flex-col items-stretch">
-                        <div className="text-xl font-bold text-black flex items-center gap-2">
-                          <TruckIcon className="w-5 h-5" />
-                          {option.nome}
-                        </div>
-                        <div className="font-normal mt-[7px] text-sm flex items-center gap-1">
-                          <ClockIcon className="w-4 h-4" />
-                          {option.prazo} dia{option.prazo > 1 ? 's' : ''} úteis
-                        </div>
+
+        {/* Breadcrumb */}
+        <nav className="mb-8 text-lg font-medium text-gray-600 max-w-4xl mx-auto">
+          <span className="font-bold text-black">Entrega</span> <span className="text-gray-500">&gt; Pagamento</span>
+        </nav>
+
+        <div className="max-w-4xl mx-auto">
+          <section className="mb-12">
+            <Card className="p-8 mb-12 rounded-2xl border-2 border-gray-200 bg-white shadow-lg">
+              {cart.length > 0 && (
+                <div className="flex flex-col gap-6 pb-6 mb-6 border-b-2 border-gray-100">
+                  {cart.map((item) => (
+                    <div key={item.id} className="flex gap-6 items-center">
+                      <img 
+                        src={item.imageUrl} 
+                        alt={item.title} 
+                        className="w-20 h-20 lg:w-24 lg:h-24 rounded-xl object-cover bg-gray-200 shadow-sm" 
+                      />
+                      <div className="flex-1">
+                        <h3 className="text-xl lg:text-2xl font-semibold mb-2">{item.title}</h3>
+                        <p className="text-lg text-gray-600">x {item.quantity}</p>
+                      </div>
                     </div>
-                  </label>
+                  ))}
                 </div>
-                  <div className="text-xl font-bold text-right self-stretch my-auto text-black">
-                    R$ {option.preco.toFixed(2).replace('.', ',')}
-                  </div>
+              )}
+              <div className="space-y-4 text-lg lg:text-xl">
+                <div className="flex justify-between">
+                  <span className="font-medium">Subtotal</span>
+                  <span className="font-semibold">R$ {subtotal.toFixed(2).replace('.', ',')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-medium">Custo de frete</span>
+                  <span className="font-semibold">R$ {frete.toFixed(2).replace('.', ',')}</span>
+                </div>
+                <div className="flex justify-between pt-4 text-xl lg:text-2xl font-bold border-t-2 border-gray-200">
+                  <span>Total</span>
+                  <span>R$ {total.toFixed(2).replace('.', ',')}</span>
+                </div>
               </div>
-            ))}
-          </fieldset>
-        </form>
-        )}
-        <Button
-          type="button"
-          className="w-full bg-black text-white rounded-2xl py-5 text-2xl font-semibold mt-2 focus:ring-black focus:border-black"
-          disabled={!selected}
-          onClick={handleContinue}
-        >
-          CONTINUAR PARA PAGAMENTO
-        </Button>
-      </section>
+            </Card>
+          </section>
+          
+          <section className="mb-12">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-8 text-black">Entrega por</h2>
+            
+            {loading && (
+              <div className="flex items-center justify-center py-12">
+                <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <span className="ml-4 text-xl text-gray-600">Calculando frete...</span>
+              </div>
+            )}
+            
+            {error && (
+              <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6 mb-8">
+                <p className="text-red-700 text-lg mb-4">{error}</p>
+                <button
+                  onClick={() => enderecoData && calcularFrete(enderecoData.cep)}
+                  className="text-red-600 underline text-lg hover:text-red-800 transition-colors"
+                >
+                  Tentar novamente
+                </button>
+              </div>
+            )}
+            
+            {!loading && !error && freteOptions.length > 0 && (
+              <form className="space-y-6 mb-12">
+                <fieldset>
+                  <legend className="sr-only">Opções de entrega</legend>
+                  {freteOptions.map((option, index) => (
+                    <button
+                      key={option.codigo}
+                      type="button"
+                      onClick={() => setSelected(option.codigo)}
+                      className={`w-full border-2 flex items-center justify-between p-6 rounded-2xl transition-all duration-200 hover:shadow-lg mb-4 ${
+                        selected === option.codigo 
+                          ? 'border-blue-500 bg-blue-50 shadow-md' 
+                          : 'border-gray-300 bg-white hover:border-gray-400'
+                      }`}
+                      aria-pressed={selected === option.codigo}
+                    >
+                      <div className="flex items-center gap-6">
+                        <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${
+                          selected === option.codigo 
+                            ? 'border-blue-500 bg-blue-500' 
+                            : 'border-gray-300'
+                        }`}>
+                          {selected === option.codigo && (
+                            <div className="w-4 h-4 bg-white rounded-full"></div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <TruckIcon className="w-8 h-8 text-gray-600" />
+                          <div className="text-left">
+                            <div className="text-xl lg:text-2xl font-semibold mb-2">
+                              {option.nome}
+                            </div>
+                            <div className="flex items-center gap-4 text-lg text-gray-600">
+                              <div className="flex items-center gap-2">
+                                <ClockIcon className="w-5 h-5" />
+                                <span>{option.prazo} dias úteis</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl lg:text-3xl font-bold text-blue-600">
+                          R$ {option.preco.toFixed(2).replace('.', ',')}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </fieldset>
+                
+                <Button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-black to-gray-800 text-white rounded-2xl py-6 text-2xl font-bold hover:from-gray-800 hover:to-black transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  disabled={!selected}
+                  onClick={handleContinue}
+                >
+                  CONTINUAR
+                </Button>
+              </form>
+            )}
+          </section>
+        </div>
+      </div>
     </main>
   );
 };

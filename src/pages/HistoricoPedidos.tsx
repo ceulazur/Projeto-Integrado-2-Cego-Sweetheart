@@ -183,19 +183,18 @@ const OrderDetailsModal: React.FC<{
 // Componente de filtro simplificado
 const SimpleFilterButton: React.FC<{ value: string; onChange: (value: string) => void }> = ({ value, onChange }) => {
   return (
-    <div className="flex w-full items-stretch gap-0.5 text-[10px] text-[rgba(27,30,132,1)] font-medium mt-3.5">
-      <img
-        src="https://api.builder.io/api/v1/image/assets/c9e61df7bfe543a0b7e24feda3172117/0a1837e8ea5698e9dc31e07f096a1be0096fd0ca?placeholderIfAbsent=true"
-        alt="Filter icon"
-        className="aspect-[1] object-contain w-6 shrink-0 rounded-[50%]"
-      />
+    <div className="relative max-w-lg mx-auto">
+      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+        <svg className="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
       <input
         type="text"
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder="Filtrar Pedido"
-        className="bg-white border flex min-h-[26px] items-center gap-2.5 justify-center grow shrink basis-auto px-12 py-[7px] rounded-[20px] border-[rgba(27,30,132,1)] border-solid hover:bg-gray-50 transition-colors outline-none text-center"
-        style={{ fontSize: '15px' }}
+        className="block w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-2xl leading-6 bg-white placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-red-100 focus:border-red-500 transition-all duration-200 text-lg shadow-sm hover:shadow-md"
       />
     </div>
   );
@@ -243,52 +242,80 @@ const SimpleOrderItem: React.FC<{
   };
 
   return (
-    <article className="flex items-stretch gap-2 font-medium">
-      <div className="text-xs text-black grow shrink-0 basis-0 w-fit">
-        <div className="flex min-h-[86px] gap-[11px]">
-          <img
-            src={imageUrl}
-            alt={title}
-            className="aspect-[0.79] object-contain w-[68px] shadow-[1px_4px_4px_rgba(0,0,0,0.25)] shrink-0"
-          />
-          <div className="w-[185px] flex flex-col justify-center">
-            <span className="font-light">{title} </span>
-            <br />x {quantity}
-            <div className="flex items-center gap-2 mt-1">
-              <span className={`inline-block w-3 h-3 rounded-full ${statusInfo.color}`}></span>
-              <span className="text-xs font-semibold">{statusInfo.text}</span>
+    <article className="bg-white border border-gray-200 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+      <div className="p-8">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+          {/* Imagem e informações do produto */}
+          <div className="flex items-start gap-6 flex-1">
+            <div className="relative">
+              <img
+                src={imageUrl || '/placeholder.svg'}
+                alt={title}
+                className="w-24 h-24 lg:w-32 lg:h-32 object-cover rounded-xl shadow-md"
+              />
+              <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                x{quantity}
+              </div>
             </div>
-            <div className="text-xs text-gray-500 mt-1">
-              Pedido em: {formatDate(orderDate)}
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-gray-900 text-xl mb-2 truncate">{title}</h3>
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`w-4 h-4 rounded-full ${statusInfo.color} shadow-sm`}></div>
+                <span className="text-sm font-medium text-gray-700">{statusInfo.text}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>Pedido em: {formatDate(orderDate)}</span>
+              </div>
             </div>
           </div>
+
+          {/* Botões de ação */}
+          <div className="flex flex-col gap-3 lg:gap-4 lg:min-w-[200px]">
+            <button
+              onClick={onTrackOrder}
+              className="group bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+            >
+              <div className="flex items-center justify-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <span>LOCALIZAR PEDIDO</span>
+              </div>
+            </button>
+            <button
+              onClick={onViewDetails}
+              className="group border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+            >
+              <div className="flex items-center justify-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span>DETALHES DO PEDIDO</span>
+              </div>
+            </button>
+            <button 
+              onClick={onRequestRefund}
+              disabled={status !== 'entregue'}
+              title={status !== 'entregue' ? 'Só é possível solicitar reembolso para pedidos entregues' : 'Solicitar reembolso'}
+              className={`group font-semibold px-6 py-3 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 ${
+                status === 'entregue' 
+                  ? 'border-2 border-gray-400 text-gray-600 hover:bg-gray-600 hover:text-white hover:border-gray-600 cursor-pointer' 
+                  : 'bg-gray-200 text-gray-400 border-2 border-gray-200 cursor-not-allowed'
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                </svg>
+                <span>PEDIR REEMBOLSO</span>
+              </div>
+            </button>
+          </div>
         </div>
-      </div>
-      <div className="text-[10px] text-[rgba(27,30,132,1)] flex flex-col gap-3">
-        <button 
-          onClick={onTrackOrder}
-          className="min-h-7 gap-2.5 text-[13px] font-medium px-8 py-1.5 rounded-[20px] border border-solid bg-[rgba(27,30,132,1)] text-white border-[rgba(96,96,96,1)] pl-[21px] pr-5"
-        >
-          LOCALIZAR PEDIDO
-        </button>
-        <button 
-          onClick={onViewDetails}
-          className="min-h-7 gap-2.5 text-[13px] font-medium px-8 py-1.5 rounded-[20px] border border-solid bg-[rgba(245,0,0,0)] text-[rgba(245,0,0,1)] border-[rgba(245,0,0,1)] px-3.5"
-        >
-          DETALHES DO PEDIDO
-        </button>
-        <button 
-          onClick={onRequestRefund}
-          disabled={status !== 'entregue'}
-          title={status !== 'entregue' ? 'Só é possível solicitar reembolso para pedidos entregues' : 'Solicitar reembolso'}
-          className={`min-h-7 gap-2.5 text-[13px] font-medium px-8 py-1.5 rounded-[20px] border border-solid px-[22px] ${
-            status === 'entregue' 
-              ? 'bg-[rgba(245,0,0,0)] text-[rgba(245,0,0,1)] border-[rgba(245,0,0,1)] cursor-pointer' 
-              : 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed'
-          }`}
-        >
-          PEDIR REEMBOLSO
-        </button>
       </div>
     </article>
   );
@@ -395,12 +422,19 @@ const HistoricoPedidos: React.FC = () => {
 
   if (loading) {
     return (
-      <main className="flex overflow-hidden flex-col pt-4 pb-7 mx-auto w-full bg-white max-w-[480px]">
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
         <Header />
-        <div className="w-full mt-2">
-          <section className="flex flex-col text-[rgba(250,0,0,1)] text-center">
-            <h1 className="text-4xl font-extrabold">SEUS PEDIDOS</h1>
-            <p className="text-[15px] font-normal mt-2.5">Carregando...</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <section className="text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-6">
+              <svg className="w-8 h-8 text-red-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </div>
+            <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-4">
+              SEUS PEDIDOS
+            </h1>
+            <p className="text-xl text-gray-600">Carregando seus pedidos...</p>
           </section>
         </div>
       </main>
@@ -409,13 +443,20 @@ const HistoricoPedidos: React.FC = () => {
 
   if (error) {
     return (
-      <main className="flex overflow-hidden flex-col pt-4 pb-7 mx-auto w-full bg-white max-w-[480px]">
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
         <Header />
-        <div className="w-full mt-2">
-          <section className="flex flex-col text-[rgba(250,0,0,1)] text-center">
-            <h1 className="text-4xl font-extrabold">SEUS PEDIDOS</h1>
-            <p className="text-[15px] font-normal mt-2.5 text-red-600">Erro ao carregar pedidos</p>
-            <p className="text-[12px] text-gray-500 mt-2">Detalhes do erro: {error}</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <section className="text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-6">
+              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-4">
+              SEUS PEDIDOS
+            </h1>
+            <p className="text-xl text-red-600 mb-4">Erro ao carregar pedidos</p>
+            <p className="text-lg text-gray-500">Detalhes do erro: {error}</p>
           </section>
         </div>
       </main>
@@ -423,26 +464,45 @@ const HistoricoPedidos: React.FC = () => {
   }
 
   return (
-    <main className="flex overflow-hidden flex-col pt-4 pb-7 mx-auto w-full bg-white max-w-[480px]">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
       <Header />
-      <div className="w-full mt-2">
-        <section className="flex flex-col text-[rgba(250,0,0,1)] text-center">
-          <h1 className="text-4xl font-extrabold">SEUS PEDIDOS</h1>
-          <p className="text-[15px] font-normal mt-2.5">
-            Você tem {filteredOrders.length} pedidos realizados
+      
+      {/* Container principal responsivo */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Cabeçalho da página */}
+        <section className="text-center mb-12">
+          <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-4">
+            SEUS PEDIDOS
+          </h1>
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            Você tem <span className="font-semibold text-red-600">{filteredOrders.length}</span> pedidos realizados
           </p>
-          <div className="border self-stretch min-h-px w-full mt-2.5 border-black border-solid" />
+          <div className="w-24 h-1 bg-gradient-to-r from-red-500 to-red-600 mx-auto rounded-full" />
         </section>
 
-        <SimpleFilterButton value={filter} onChange={setFilter} />
+        {/* Filtro */}
+        <div className="max-w-lg mx-auto mb-12">
+          <SimpleFilterButton value={filter} onChange={setFilter} />
+        </div>
 
-        <section className="mt-6" aria-label="Lista de pedidos">
+        {/* Lista de pedidos */}
+        <section className="max-w-5xl mx-auto" aria-label="Lista de pedidos">
           {filteredOrders.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-500">Nenhum pedido encontrado</p>
+            <div className="text-center py-16">
+              <div className="bg-white rounded-2xl shadow-lg p-12 border border-gray-100">
+                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-semibold text-gray-900 mb-2">Nenhum pedido encontrado</h3>
+                <p className="text-gray-500 text-lg">
+                  {filter ? 'Tente ajustar os filtros de busca' : 'Faça seu primeiro pedido!'}
+                </p>
+              </div>
             </div>
           ) : (
-            <div className="flex flex-col gap-[17px]">
+            <div className="grid gap-8">
               {filteredOrders.map((order) => (
                 <SimpleOrderItem
                   key={order.id}
