@@ -74,7 +74,6 @@ $ npm run dev
 ---
 
 ## Observações
-- O backend e o banco SQLite são locais (não use para produção sem ajustes de segurança!)
 - O projeto é totalmente open source e pode ser customizado.
 
 ---
