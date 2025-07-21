@@ -92,17 +92,7 @@ export default function Login() {
               <div className="bg-white rounded-2xl shadow-xl p-8">
                 <LoginForm />
                 
-                <div className="mt-8 text-center">
-                  <p className="text-gray-600">
-                    Não tem uma conta?{' '}
-                    <a 
-                      href="/register" 
-                      className="text-red-600 hover:text-red-700 font-semibold transition-colors"
-                    >
-                      Cadastre-se aqui
-                    </a>
-                  </p>
-                </div>
+                {/* Parágrafo de cadastro removido */}
               </div>
             </div>
           </div>

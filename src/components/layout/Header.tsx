@@ -189,12 +189,6 @@ export const Header: React.FC = () => {
             >
               Catálogo
             </a>
-            <a 
-              href="/historico-pedidos" 
-              className="text-gray-700 hover:text-red-600 font-medium transition-colors"
-            >
-              Meus Pedidos
-            </a>
           </nav>
 
           {/* Ações do Usuário */}
@@ -287,15 +281,7 @@ export const Header: React.FC = () => {
                     >
                       Carrinho ({cartCount})
                     </a>
-                    {isAuthenticated && (
-                      <a 
-                        href="/historico-pedidos" 
-                        className="block py-2 text-gray-700 hover:text-red-600 transition-colors"
-                        onClick={() => setSidebarOpen(false)}
-                      >
-                        Meus Pedidos
-                      </a>
-                    )}
+                    {/* Meus Pedidos removido do menu mobile */}
                     {user?.email === 'admin' && (
                       <a 
                         href="/admin" 
