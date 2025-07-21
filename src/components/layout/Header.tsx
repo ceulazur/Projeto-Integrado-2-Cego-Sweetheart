@@ -157,19 +157,19 @@ export const Header: React.FC = () => {
 
   return (
     <header className="w-full bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div 
-            className="flex items-center space-x-3 cursor-pointer" 
+            className="flex items-center space-x-2 sm:space-x-3 cursor-pointer min-w-0" 
             onClick={() => navigateAndScroll('/')}
           >
             <img
               src="/logo.svg"
               alt="CEGO Logo"
-              className="w-12 h-12"
+              className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0"
             />
-            <div className="text-xl font-bold">
+            <div className="text-lg sm:text-xl font-bold truncate">
               <span className="text-red-600 font-['MaryKate']">CEGO</span>{" "}
               <span className="text-blue-900 font-['MaryKate']">SWEETHEART</span>
             </div>
@@ -192,7 +192,7 @@ export const Header: React.FC = () => {
           </nav>
 
           {/* Ações do Usuário */}
-          <div className="flex items-center space-x-2 lg:space-x-4">
+          <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-4">
             {/* Carrinho */}
             <button
               onClick={() => navigateAndScroll('/carrinho')}
@@ -206,34 +206,36 @@ export const Header: React.FC = () => {
               )}
             </button>
 
-            {/* Usuário */}
+            {/* Usuário - só aparece no desktop/tablet */}
             {isAuthenticated ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="flex items-center space-x-2 p-2 text-gray-700 hover:text-red-600 transition-colors">
-                    <UserIcon className="w-6 h-6" />
-                    <span className="hidden lg:block font-medium truncate max-w-32">
-                      {user?.firstName || 'Usuário'}
-                    </span>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={handlePedidos}>
-                    Meus Pedidos
-                  </DropdownMenuItem>
-                  {user?.email === 'admin' && (
-                    <DropdownMenuItem onClick={handleAdminClick}>
-                      Painel Admin
+              <div className="hidden md:block">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center space-x-2 p-2 text-gray-700 hover:text-red-600 transition-colors">
+                      <UserIcon className="w-6 h-6" />
+                      <span className="hidden lg:block font-medium truncate max-w-32">
+                        {user?.firstName || 'Usuário'}
+                      </span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={handlePedidos}>
+                      Meus Pedidos
                     </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    Sair
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    {user?.email === 'admin' && (
+                      <DropdownMenuItem onClick={handleAdminClick}>
+                        Painel Admin
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                      Sair
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             ) : (
-              <div className="flex items-center space-x-2 lg:space-x-3">
+              <div className="hidden md:flex items-center space-x-2 lg:space-x-3">
                 <a 
                   href="/login"
                   className="text-gray-700 hover:text-red-600 font-medium transition-colors text-sm lg:text-base"
@@ -249,12 +251,12 @@ export const Header: React.FC = () => {
               </div>
             )}
 
-            {/* Menu Mobile */}
+            {/* Menu Mobile - sempre visível no mobile */}
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
               <SheetTrigger asChild>
                 <button className="md:hidden p-2 text-gray-700 hover:text-red-600 transition-colors">
                   <Bars3Icon className="w-6 h-6" />
-          </button>
+                </button>
               </SheetTrigger>
               <SheetContent side="right" className="w-80">
                 <div className="py-6">
@@ -291,7 +293,7 @@ export const Header: React.FC = () => {
                         Painel Admin
                       </a>
                     )}
-        </nav>
+                  </nav>
 
                   {isAuthenticated ? (
                     <button
@@ -319,8 +321,8 @@ export const Header: React.FC = () => {
                       >
                         Cadastrar
                       </a>
-                      </div>
-                    )}
+                    </div>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>
