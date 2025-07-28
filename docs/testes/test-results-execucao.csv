@@ -1,0 +1,38 @@
+Suíte de teste,Sistema de E-commerce Cego Sweetheart
+Data da execução,15/01/2025
+Responsável,Equipe de Testes
+Versão do sistema,Sistema v1.0.0
+Ambiente,Desenvolvimento
+Versão,1.0.0
+Sistema Operacional,Windows 10
+Caso de Teste,Descrição,Passos,Entrada,Resultado Esperado,Resultado Encontrado,Resumo do Teste
+CT001,"Cadastro com dados válidos","1) Acessar página de cadastro; 2) Preencher nome 'João'; 3) Preencher sobrenome 'Silva'; 4) Preencher email 'joao@exemplo.com'; 5) Preencher senha 'senha123'; 6) Confirmar senha 'senha123'; 7) Clicar em 'Criar Conta'","(""João"", ""Silva"", ""joao@exemplo.com"", ""senha123"", ""senha123"")",Usuário criado com sucesso,"Erro: AuthProvider não encontrado",FALHOU
+CT002,"Cadastro com email inválido","1) Acessar página de cadastro; 2) Preencher nome 'João'; 3) Preencher sobrenome 'Silva'; 4) Preencher email 'email-invalido'; 5) Preencher senha 'senha123'; 6) Confirmar senha 'senha123'; 7) Clicar em 'Criar Conta'","(""João"", ""Silva"", ""email-invalido"", ""senha123"", ""senha123"")",Erro: Email inválido,"Erro: AuthProvider não encontrado",FALHOU
+CT003,"Cadastro com senhas diferentes","1) Acessar página de cadastro; 2) Preencher nome 'João'; 3) Preencher sobrenome 'Silva'; 4) Preencher email 'joao@exemplo.com'; 5) Preencher senha 'senha123'; 6) Confirmar senha 'senha456'; 7) Clicar em 'Criar Conta'","(""João"", ""Silva"", ""joao@exemplo.com"", ""senha123"", ""senha456"")",Erro: Senhas não coincidem,"Erro: AuthProvider não encontrado",FALHOU
+CT004,"Login com credenciais válidas","1) Acessar página de login; 2) Preencher email 'joao@exemplo.com'; 3) Preencher senha 'senha123'; 4) Clicar em 'Entrar'","(""joao@exemplo.com"", ""senha123"")",Login realizado com sucesso,"Erro: AuthProvider não encontrado",FALHOU
+CT005,"Login com credenciais inválidas","1) Acessar página de login; 2) Preencher email 'joao@exemplo.com'; 3) Preencher senha 'senha-errada'; 4) Clicar em 'Entrar'","(""joao@exemplo.com"", ""senha-errada"")",Erro: Credenciais inválidas,"Erro: AuthProvider não encontrado",FALHOU
+CT007,"Exibir lista de produtos","1) Acessar página de catálogo; 2) Aguardar carregamento dos produtos","()",Lista de produtos exibida,"Erro: BrowserRouter não encontrado",FALHOU
+CT008,"Exibir mensagem sem produtos","1) Acessar página de catálogo com banco vazio; 2) Aguardar carregamento","()",Mensagem: Nenhum produto encontrado,"Erro: BrowserRouter não encontrado",FALHOU
+CT009,"Exibir detalhes do produto","1) Acessar página de produto; 2) Verificar informações exibidas","(""1"")",Detalhes do produto exibidos,"Erro: BrowserRouter não encontrado",FALHOU
+CT010,"Produto não encontrado","1) Acessar URL de produto inexistente; 2) Verificar mensagem de erro","(""999"")",Erro: Produto não encontrado,"Erro: BrowserRouter não encontrado",FALHOU
+CT011,"Filtrar produtos por nome","1) Acessar página de catálogo; 2) Digitar 'pintura' no campo de busca; 3) Verificar resultados","(""pintura"")",Produtos filtrados por termo,"Erro: BrowserRouter não encontrado",FALHOU
+CT012,"Filtrar produtos por categoria","1) Acessar página de catálogo; 2) Selecionar categoria 'Pintura'; 3) Verificar resultados","(""pintura"")",Produtos filtrados por categoria,"Erro: BrowserRouter não encontrado",FALHOU
+CT015,"Adicionar produto ao carrinho","1) Acessar página de produto; 2) Selecionar tamanho 'M'; 3) Clicar em 'Adicionar ao Carrinho'","(""1"", ""1"", ""M"")",Produto adicionado ao carrinho,"Erro: BrowserRouter não encontrado",FALHOU
+CT016,"Atualizar quantidade no carrinho","1) Acessar carrinho; 2) Clicar no botão '+' para aumentar quantidade; 3) Verificar nova quantidade","(""1"")",Quantidade atualizada para 2,"Erro: BrowserRouter não encontrado",FALHOU
+CT017,"Remover produto do carrinho","1) Acessar carrinho; 2) Clicar no botão 'Remover'; 3) Confirmar remoção","(""1"")",Produto removido do carrinho,"Erro: BrowserRouter não encontrado",FALHOU
+CT020,"Exibir resumo do pedido","1) Acessar carrinho com produtos; 2) Verificar informações do resumo","()",Resumo do pedido exibido,"Erro: BrowserRouter não encontrado",FALHOU
+CT021,"Finalizar compra com dados válidos","1) Acessar carrinho; 2) Preencher dados de entrega; 3) Clicar em 'Finalizar Compra'","(""João Silva"", ""joao@exemplo.com"", ""Rua A, 123"")",Pedido finalizado com sucesso,"Erro: BrowserRouter não encontrado",FALHOU
+CT022,"Rejeitar finalização com carrinho vazio","1) Acessar carrinho vazio; 2) Tentar finalizar compra","()",Botão de finalizar desabilitado,"Erro: BrowserRouter não encontrado",FALHOU
+CT023,"Cadastro de artista com dados válidos","1) Acessar área administrativa; 2) Preencher dados do artista; 3) Clicar em 'Cadastrar'","(""João"", ""Artista"", ""joao@exemplo.com"", ""senha123"")",Artista cadastrado com sucesso,"Erro: Label não associado ao input",FALHOU
+CT024,"Rejeitar cadastro com email existente","1) Tentar cadastrar artista com email já existente; 2) Verificar mensagem de erro","(""João"", ""Artista"", ""joao@exemplo.com"", ""senha123"")",Erro: Email já cadastrado,"Erro: Label não associado ao input",FALHOU
+CT025,"Listar artistas cadastrados","1) Acessar página de vendedores; 2) Verificar lista de artistas","()",Lista de artistas exibida,"Carregando vendedores... - dados não carregados",FALHOU
+CT028,"Listar solicitações de reembolso","1) Acessar página de reembolsos; 2) Verificar lista de solicitações","()",Lista de reembolsos exibida,"Carregando reembolsos... - dados não carregados",FALHOU
+CT029,"Aprovar reembolso","1) Acessar página de reembolsos; 2) Clicar em 'Aprovar' para uma solicitação; 3) Confirmar aprovação","(""1"")",Reembolso aprovado com sucesso,"Carregando reembolsos... - dados não carregados",FALHOU
+CT030,"Rejeitar reembolso","1) Acessar página de reembolsos; 2) Clicar em 'Rejeitar' para uma solicitação; 3) Inserir justificativa; 4) Confirmar rejeição","(""1"", ""Produto em perfeito estado"")",Reembolso rejeitado,"Carregando reembolsos... - dados não carregados",FALHOU
+CT031,"Exibir histórico de pedidos","1) Acessar página de histórico; 2) Verificar lista de pedidos","()",Histórico de pedidos exibido,"Erro: AuthProvider não encontrado",FALHOU
+CT032,"Exibir detalhes do pedido","1) Acessar histórico; 2) Clicar em 'Ver Detalhes' para um pedido; 3) Verificar informações","(""1"")",Detalhes do pedido exibidos,"Erro: AuthProvider não encontrado",FALHOU
+CT034,"Cancelar pedido antes do envio","1) Acessar histórico; 2) Clicar em 'Cancelar' para pedido pendente; 3) Confirmar cancelamento","(""1"")",Pedido cancelado com sucesso,"Erro: AuthProvider não encontrado",FALHOU
+CT035,"Impedir cancelamento de pedido enviado","1) Acessar histórico; 2) Verificar que botão cancelar não está disponível para pedido enviado","(""1"")",Botão cancelar não disponível,"Erro: AuthProvider não encontrado",FALHOU
+CT036,"Solicitar reembolso","1) Acessar página de solicitar reembolso; 2) Preencher motivo e descrição; 3) Clicar em 'Enviar Solicitação'","(""1"", ""Produto com defeito"", ""Descrição detalhada"")",Reembolso solicitado,"Erro: AuthProvider não encontrado",FALHOU
+CT037,"Rejeitar solicitação sem motivo","1) Tentar enviar solicitação sem preencher motivo; 2) Verificar mensagem de erro","(""1"", """", ""Descrição detalhada"")",Erro: Motivo obrigatório,"Erro: AuthProvider não encontrado",FALHOU
+CT038,"Impedir reembolso de pedido não entregue","1) Tentar solicitar reembolso para pedido em trânsito; 2) Verificar mensagem de erro","(""1"", ""Produto com defeito"", ""Descrição detalhada"")",Erro: Pedido ainda não entregue,"Erro: AuthProvider não encontrado",FALHOU 

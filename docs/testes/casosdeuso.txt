@@ -1,0 +1,155 @@
+Histórias de Usuário 
+
+1. Cadastro e login de clientes 
+
+●  US01: Como cliente, quero criar uma conta no sistema para realizar compras. 
+
+●  US02: Como cliente, quero fazer login com meu e-mail e senha para acessar minha 
+
+conta. 
+
+●  US03: Como cliente, quero atualizar meus dados pessoais para manter meu perfil 
+
+sempre correto. 
+
+2. Visualização de produtos e detalhes 
+
+●  US04: Como cliente, quero visualizar a lista de produtos disponíveis para conhecer o 
+
+que está à venda. 
+
+●  US05: Como cliente, quero ver os detalhes de um produto (descrição, preço, artista, 
+
+tamanhos, etc.) para decidir se desejo comprá-lo. 
+
+●  US06: Como cliente, quero pesquisar produtos por nome ou categoria para 
+
+encontrar o que procuro com mais facilidade. ( 
+
+●  US07: Como cliente, quero visualizar os produtos organizados por artista para 
+
+encontrar facilmente os trabalhos de cada um. 
+
+3. Carrinho de compras e finalização de pedido 
+
+●  US08: Como cliente, quero adicionar produtos ao carrinho para organizar os itens 
+
+que desejo comprar. 
+
+●  US09: Como cliente, quero remover produtos do carrinho para ajustar meus pedidos 
+
+antes da compra. 
+
+●  US10: Como cliente, quero alterar a quantidade ou tamanho dos produtos (em caso 
+
+de vestuário)  no carrinho para personalizar meu pedido. 
+
+●  US11: Como cliente, quero visualizar o resumo do meu pedido antes de finalizar a 
+
+compra para revisar todos os itens. 
+
+●  US12: Como cliente, quero finalizar minha compra de forma rápida e segura para 
+
+receber meus produtos. 
+
+4. Cadastro e gerenciamento de produtos pelos artistas 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+●  US13: Como artista, quero cadastrar novos produtos para que eles fiquem 
+
+disponíveis na loja. 
+
+●  US14: Como artista, quero editar as informações de um produto para corrigir ou 
+
+atualizar detalhes. 
+
+●  US15: Como artista, quero excluir produtos que não estão mais à venda para manter 
+
+meu portfólio atualizado. 
+
+●  US16: Como artista, quero acompanhar os pedidos recebidos dos meus produtos 
+
+para iniciar a separação e entrega. 
+
+5. Cadastro e gerenciamento de artistas 
+
+●  US17: Como administrador, quero cadastrar artistas no sistema para que eles 
+
+possam vender seus produtos. 
+
+●  US18: Como administrador, quero editar ou excluir contas de artistas para manter o 
+
+controle da plataforma. 
+
+6. Listagem de pedidos e histórico de compra 
+
+●  US19: Como cliente, quero acessar meu histórico de compras para acompanhar os 
+
+pedidos que já fiz. 
+
+●  US20: Como artista, quero ver a lista de pedidos realizados com meus produtos para 
+
+acompanhar as vendas. 
+
+7. Cancelamento e reembolso 
+
+●  US21: Como cliente, quero cancelar um pedido antes do envio para não receber 
+
+algo que não desejo mais. 
+
+●  US22: Como cliente, quero solicitar reembolso de um pedido para receber meu 
+
+dinheiro de volta em caso de problemas. 
+
+●  US23: Como artista, quero ser notificado quando um pedido for cancelado ou 
+
+reembolsado para ajustar meu controle de estoque e produção. 
+
+●  US24: Como administrador, quero acompanhar solicitações de reembolso e 
+
+cancelamento para garantir o bom funcionamento da loja. 
+
+8. Notificações e status do pedido 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+●  US25: Como cliente, quero receber notificações sobre o status do meu pedido 
+
+(confirmado, enviado, entregue, cancelado) para saber o andamento da compra. 
+
+●  US26: Como artista, quero receber notificações quando um novo pedido for feito 
+
+com meus produtos para começar a prepará-los. 
+
+9. Segurança e recuperação de conta 
+
+●  US27: Como usuário, quero redefinir minha senha caso eu esqueça para recuperar 
+
+o acesso à minha conta. 
+
+ 
+ 
+ 
+ 
+

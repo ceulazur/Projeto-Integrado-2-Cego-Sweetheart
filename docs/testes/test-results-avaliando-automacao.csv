@@ -1,0 +1,31 @@
+Caso de Teste,Importância,Efetividade,Exemplaridade,Tempo,Integração,Total,Resultado
+CT001 - Cadastro com dados válidos,3,3,3,3,3,15,Alta Prioridade - Implementado com problemas de mock
+CT002 - Cadastro com email inválido,2,2,2,2,2,10,Média Prioridade - Implementado com problemas de mock
+CT003 - Cadastro com senhas diferentes,2,2,2,2,2,10,Média Prioridade - Implementado com problemas de mock
+CT004 - Login com credenciais válidas,3,3,3,3,3,15,Alta Prioridade - Implementado com problemas de mock
+CT005 - Login com credenciais inválidas,2,2,2,2,2,10,Média Prioridade - Implementado com problemas de mock
+CT007 - Exibir lista de produtos,3,3,3,3,3,15,Alta Prioridade - Implementado com problemas de mock
+CT008 - Exibir mensagem sem produtos,2,2,2,2,2,10,Média Prioridade - Implementado com problemas de mock
+CT009 - Exibir detalhes do produto,3,3,3,3,3,15,Alta Prioridade - Implementado com problemas de mock
+CT010 - Produto não encontrado,2,2,2,2,2,10,Média Prioridade - Implementado com problemas de mock
+CT011 - Filtrar produtos por nome,3,3,3,3,3,15,Alta Prioridade - Implementado com problemas de mock
+CT012 - Filtrar produtos por categoria,3,3,3,3,3,15,Alta Prioridade - Implementado com problemas de mock
+CT015 - Adicionar produto ao carrinho,3,3,3,3,3,15,Alta Prioridade - Implementado com problemas de mock
+CT016 - Atualizar quantidade no carrinho,2,2,2,2,2,10,Média Prioridade - Implementado com problemas de mock
+CT017 - Remover produto do carrinho,2,2,2,2,2,10,Média Prioridade - Implementado com problemas de mock
+CT020 - Exibir resumo do pedido,3,3,3,3,3,15,Alta Prioridade - Implementado com problemas de mock
+CT021 - Finalizar compra com dados válidos,3,3,3,3,3,15,Alta Prioridade - Implementado com problemas de mock
+CT022 - Rejeitar finalização com carrinho vazio,2,2,2,2,2,10,Média Prioridade - Implementado com problemas de mock
+CT023 - Cadastro de artista com dados válidos,3,3,3,3,3,15,Alta Prioridade - Implementado com problemas de acessibilidade
+CT024 - Rejeitar cadastro com email existente,2,2,2,2,2,10,Média Prioridade - Implementado com problemas de acessibilidade
+CT025 - Listar artistas cadastrados,3,3,3,3,3,15,Alta Prioridade - Implementado com problemas de mock
+CT028 - Listar solicitações de reembolso,3,3,3,3,3,15,Alta Prioridade - Implementado com problemas de mock
+CT029 - Aprovar reembolso,3,3,3,3,3,15,Alta Prioridade - Implementado com problemas de mock
+CT030 - Rejeitar reembolso,3,3,3,3,3,15,Alta Prioridade - Implementado com problemas de mock
+CT031 - Exibir histórico de pedidos,3,3,3,3,3,15,Alta Prioridade - Implementado com problemas de mock
+CT032 - Exibir detalhes do pedido,2,2,2,2,2,10,Média Prioridade - Implementado com problemas de mock
+CT034 - Cancelar pedido antes do envio,3,3,3,3,3,15,Alta Prioridade - Implementado com problemas de mock
+CT035 - Impedir cancelamento de pedido enviado,2,2,2,2,2,10,Média Prioridade - Implementado com problemas de mock
+CT036 - Solicitar reembolso,3,3,3,3,3,15,Alta Prioridade - Implementado com problemas de mock
+CT037 - Rejeitar solicitação sem motivo,2,2,2,2,2,10,Média Prioridade - Implementado com problemas de mock
+CT038 - Impedir reembolso de pedido não entregue,2,2,2,2,2,10,Média Prioridade - Implementado com problemas de mock 
